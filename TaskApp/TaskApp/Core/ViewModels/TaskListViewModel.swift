@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 class TaskListViewModel: ObservableObject{
-    @Published var tasks: [Task]=[
-        Task(title: "hollow")
+    @Published var tasks: [Habito]=[
+        Habito(title: "hollow")
     ]
 }
