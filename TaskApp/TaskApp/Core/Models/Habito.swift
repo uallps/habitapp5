@@ -11,9 +11,11 @@ struct Habito: Identifiable, Codable {
     let id = UUID()
     var title: String
     var descripcion: String
-    var prioridad: Int?
+    var prioridad: Prioridad?
     var fechaInicio: Date?
     var fechaFin: Date?
+    var completada: Bool = false
+    var fechaCompletitud: [Date]
     //var icono: Image i dont fucking know man
     //var color: ¿pillar color de interfaz o hexadecimal hardcodeado xd?  
 }
