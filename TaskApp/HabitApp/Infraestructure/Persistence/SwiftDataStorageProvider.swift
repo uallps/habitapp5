@@ -7,20 +7,34 @@
 import Foundation
 import SwiftData
 
+class SwiftDataContext {
+    static var shared: ModelContext?
+    
+    static func initialize(with models: [any PersistentModel.Type]) {
+        do {
+            let schema = Schema(models)
+            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            shared = ModelContext(container)
+        } catch {
+            fatalError("Failed to initialize SwiftData context: \(error)")
+        }
+    }
+}
+
 class SwiftDataStorageProvider: StorageProvider {
 
     static let shared = SwiftDataStorageProvider()
 
-    private let modelContainer: ModelContainer
-    private let context: ModelContext
+    private var context: ModelContext {
+        guard let context = SwiftDataContext.shared else {
+            fatalError("SwiftData context not initialized. Call SwiftDataContext.initialize first")
+        }
+        return context
+    }
 
     init(){
-        do {
-            self.modelContainer = try ModelContainer(for: Habito.self)
-            self.context = ModelContext(self.modelContainer)
-        } catch {
-            fatalError("Failed to initialize storage provider: \(error)")
-       }
+        
     }
 
     func loadHabits() async throws -> [Habito] {

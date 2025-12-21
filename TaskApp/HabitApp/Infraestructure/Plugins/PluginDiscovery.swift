@@ -12,7 +12,7 @@ class PluginDiscovery {
     static func discoverPlugins() -> [FeaturePlugin.Type] {
         var plugins: [FeaturePlugin.Type] = []
         
-        print("🔍 Iniciando discovery optimizado de plugins...")
+        print("Iniciando discovery optimizado de plugins...")
         
         // Obtener el bundle principal de la app
         guard let executableName = Bundle.main.executablePath?.components(separatedBy: "/").last else {
@@ -28,7 +28,7 @@ class PluginDiscovery {
         let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)
         let actualClassCount: Int32 = objc_getClassList(autoreleasingAllClasses, expectedClassCount)
         
-        print("📊 Total de clases en runtime: \(actualClassCount)")
+        print("Total de clases en runtime: \(actualClassCount)")
         
         var checkedCount = 0
         var skippedCount = 0
@@ -50,7 +50,7 @@ class PluginDiscovery {
                 // Verificar si la clase implementa FeaturePlugin
                 if let pluginType = currentClass as? FeaturePlugin.Type {
                     pluginCandidates += 1
-                    print("🎯 Candidato encontrado: \(String(describing: pluginType))")
+                    print("Candidato encontrado: \(String(describing: pluginType))")
                     
                     plugins.append(pluginType)
                     print("✅ Plugin válido agregado: \(String(describing: pluginType))")
@@ -60,13 +60,13 @@ class PluginDiscovery {
         
         allClasses.deallocate()
         
-        print("📈 Resumen del discovery:")
+        print("Resumen del discovery:")
         print("   • Total runtime: \(actualClassCount) clases")
         print("   • Omitidas (filtros): \(skippedCount) clases")
         print("   • Revisadas: \(checkedCount) clases")
         print("   • Candidatos: \(pluginCandidates)")
         print("   • Plugins válidos: \(plugins.count)")
-        print("🎉 Plugins descubiertos: \(plugins.map { String(describing: $0) })")
+        print("Plugins descubiertos: \(plugins.map { String(describing: $0) })")
         
         return plugins
     }

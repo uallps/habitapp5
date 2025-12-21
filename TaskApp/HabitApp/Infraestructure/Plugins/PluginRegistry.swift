@@ -4,10 +4,13 @@
 //
 import Foundation
 import SwiftData
-import SwiftUI
+import Combine
+internal import SwiftUI
 
 /// Registro centralizado de plugins de características
-class PluginRegistry {
+// Necesito que sea ObservableObject para que pueda notificar cambios en la UI y refrescar la pagina de ajustes.
+@MainActor
+class PluginRegistry: ObservableObject {
     /// Instancia compartida del registro (Singleton)
     static let shared = PluginRegistry()
     
@@ -15,7 +18,7 @@ class PluginRegistry {
     private(set) var registeredPlugins: [FeaturePlugin.Type] = []
     
     /// Instancias de plugins creadas
-    private var pluginInstances: [FeaturePlugin] = []
+    @Published private var pluginInstances: [FeaturePlugin] = []
     
     /// Inicializador privado para el patrón Singleton
     private init() {}
@@ -129,7 +132,7 @@ class PluginRegistry {
     func clearAll() {
         registeredPlugins.removeAll()
         pluginInstances.removeAll()
-        print("🗑️ Todos los plugins han sido eliminados del registro")
+        print("Todos los plugins han sido eliminados del registro")
     }
     
     /// Obtiene el número de plugins registrados
@@ -162,18 +165,36 @@ class PluginRegistry {
     func getPluginSettingsViews() -> [AnyView] {
         return pluginInstances
             .compactMap { $0 as? ViewPlugin }
-            .filter { $0.isEnabled }
             .map { AnyView($0.settingsView()) }
+    }
+    
+    /// Obtiene todas las vistas principales de navegación de los plugins habilitados
+    /// - Returns: Array de tuplas con título y vista de cada plugin
+    func getPluginMainNavigationViews() -> [(title: String, view: AnyView, id: String)] {
+        return pluginInstances
+            .compactMap { plugin -> (String, AnyView, String)? in
+                guard plugin.isEnabled,
+                      let viewPlugin = plugin as? ViewPlugin,
+                      let nav = viewPlugin.mainNavigationView() else {
+                    return nil
+                }
+                return (nav.title, nav.view, plugin.identifier)
+            }
     }
     
     /// Obtiene información de todos los plugins registrados
     /// - Returns: Array de tuplas con información de cada plugin
-    func getPluginInfo() -> [(name: String, version: String, identifier: String, enabled: Bool)] {
+    func getPluginInfo() -> [(name: String, identifier: String, enabled: Bool)] {
         return pluginInstances.map { plugin in
             (name: plugin.name, 
-             version: plugin.version, 
              identifier: plugin.identifier, 
              enabled: plugin.isEnabled)
         }
+    }
+    
+    /// Notifica que el estado de un plugin ha cambiado
+    /// Hace que la UI se refresque automáticamente
+    func pluginStateDidChange() {
+        objectWillChange.send()
     }
 }

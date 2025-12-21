@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUI
+internal import SwiftUI
 import Combine
 
 @MainActor

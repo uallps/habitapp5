@@ -19,9 +19,15 @@ class JSONStorageProvider: StorageProvider {
     }
     
     func loadHabits() async throws -> [Habito] {
+        // Si el archivo aún no existe (primera ejecución), devolvemos una lista vacía.
+        // Así evitamos inconsistencias entre datos en memoria y datos persistidos.
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            return []
+        }
+
         let data = try Data(contentsOf: fileURL)
-        let habits = try JSONDecoder().decode([Habito].self, from: data)
-        return habits
+        guard !data.isEmpty else { return [] }
+        return try JSONDecoder().decode([Habito].self, from: data)
     }
     
     func saveHabits(habits: [Habito]) async throws {

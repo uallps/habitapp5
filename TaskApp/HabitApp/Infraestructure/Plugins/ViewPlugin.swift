@@ -3,7 +3,7 @@
 //  HabitApp
 //
 import Foundation
-import SwiftUI
+internal import SwiftUI
 
 /// Protocol para plugins que proveen vistas en diferentes puntos de la aplicación
 protocol ViewPlugin: FeaturePlugin {
@@ -32,4 +32,15 @@ protocol ViewPlugin: FeaturePlugin {
     /// - Returns: Una vista de configuración usando ViewBuilder
     @ViewBuilder
     func settingsView() -> SettingsContent
+    
+    /// Provee una vista principal de navegación para el plugin (si tiene una)
+    /// - Returns: Tupla con el título y vista principal, o nil si no tiene
+    func mainNavigationView() -> (title: String, view: AnyView)?
+}
+
+// Implementación por defecto para mainNavigationView (opcional) (Se configura como extension para no forzar su implementación, es decir, si un plugin no tiene una vista principal en si no lo tendrá que usar)
+extension ViewPlugin {
+    func mainNavigationView() -> (title: String, view: AnyView)? {
+        return nil
+    }
 }

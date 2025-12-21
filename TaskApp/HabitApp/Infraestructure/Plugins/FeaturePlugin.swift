@@ -13,9 +13,6 @@ protocol FeaturePlugin: AnyObject {
     /// Nombre descriptivo del plugin
     var name: String { get }
     
-    /// Versión del plugin
-    var version: String { get }
-    
     /// Modelos de datos que el plugin necesita persistir
     var models: [any PersistentModel.Type] { get }
     

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUI
+internal import SwiftUI
 
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel

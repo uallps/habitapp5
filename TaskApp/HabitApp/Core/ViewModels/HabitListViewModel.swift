@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import SwiftUI
+internal import SwiftUI
 
 @MainActor
 class HabitListViewModel: ObservableObject{
@@ -18,10 +18,7 @@ class HabitListViewModel: ObservableObject{
         self.storageProvider = storageProvider
     }
 
-    @Published var habitos: [Habito]=[
-        Habito(title: "Jugar al Hollow", descripcion: "Es un juegazo", prioridad: .low, fechaFin: Date().addingTimeInterval(86400)),
-        Habito(title: "Terminar LPS", descripcion: "Vamos atrasados", prioridad: .high)
-    ]
+    @Published var habitos: [Habito] = []
     
     
     func loadHabits() async {
@@ -36,6 +33,17 @@ class HabitListViewModel: ObservableObject{
     
     func addHabit(habit: Habito) {
         habitos.append(habit)
+
+        // Persistir inmediatamente para que cualquier pantalla/feature que lea
+        // desde StorageProvider vea el mismo estado que la lista principal.
+        Task { @MainActor in
+            try? await storageProvider.saveHabits(habits: habitos)
+        }
+        
+        // Notificar a plugins que se creó un nuevo hábito
+        Task {
+            await PluginRegistry.shared.notifyHabitoDidCreate(habit)
+        }
         
         // Programar notificación si tiene fecha de recordatorio
         if let reminderDate = habit.reminderDate {
@@ -46,17 +54,37 @@ class HabitListViewModel: ObservableObject{
     }
     
     func removeHabits(atOffsets offsets: IndexSet) async{
-        // Cancelar notificaciones de los hábitos que se van a eliminar
+        // Notificar a plugins antes de eliminar y cancelar notificaciones
         for index in offsets {
-            notificationService.cancelNotification(for: habitos[index].id)
+            let habit = habitos[index]
+            await PluginRegistry.shared.notifyHabitoWillBeDeleted(habit)
+            notificationService.cancelNotification(for: habit.id)
         }
+        
+        // Guardar IDs antes de eliminar para notificar después
+        let deletedIds = offsets.map { habitos[$0].id }
         
         habitos.remove(atOffsets: offsets)
         try? await storageProvider.saveHabits(habits: habitos)
+        
+        // Notificar a plugins después de eliminar
+        for id in deletedIds {
+            await PluginRegistry.shared.notifyHabitoDidDelete(habitoId: id)
+        }
     }
     
     func saveHabits() async {
+        // Notificar a plugins antes de guardar
+        for habit in habitos {
+            await PluginRegistry.shared.notifyHabitoWillBeUpdated(habit)
+        }
+        
         try? await storageProvider.saveHabits(habits: habitos)
+        
+        // Notificar a plugins después de guardar
+        for habit in habitos {
+            await PluginRegistry.shared.notifyHabitoDidUpdate(habit)
+        }
         
         // Actualizar notificaciones de todos los hábitos
         await updateAllNotifications()
@@ -70,6 +98,11 @@ class HabitListViewModel: ObservableObject{
                 habitos[index].fechaCompletitud?.append(Date())
             } else {
                 //tasks[index].fechaCompletitud?.
+            }
+            
+            // Notificar a plugins que el hábito se actualizó
+            Task {
+                await PluginRegistry.shared.notifyHabitoDidUpdate(habitos[index])
             }
         }
     }

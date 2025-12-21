@@ -4,7 +4,7 @@
 //
 //  Created by Aula03 on 15/10/25.
 //
-import SwiftUI
+internal import SwiftUI
 import Combine
 
 class AppConfig: ObservableObject {

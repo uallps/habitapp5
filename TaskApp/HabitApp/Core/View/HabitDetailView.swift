@@ -1,4 +1,4 @@
-import SwiftUI
+internal import SwiftUI
 
 struct HabitDetailView: View {
     @Binding var habit: Habito
@@ -86,6 +86,14 @@ struct HabitDetailView: View {
                     }
                     // Recordatorio moved to Features/Reminders
                     ReminderEditorView(reminderDate: $habit.reminderDate)
+                }
+                
+                // Sección dinámica de plugins
+                // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
+                ForEach(0..<PluginRegistry.shared.getHabitoDetailViews(for: $habit).count, id: \.self) { index in
+                    Section {
+                        PluginRegistry.shared.getHabitoDetailViews(for: $habit)[index]
+                    }
                 }
             }
             .navigationTitle($habit.title)

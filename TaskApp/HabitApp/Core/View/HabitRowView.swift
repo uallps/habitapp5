@@ -1,4 +1,4 @@
-import SwiftUI
+internal import SwiftUI
 
 struct HabitRowView: View {
     
@@ -43,6 +43,12 @@ struct HabitRowView: View {
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
+            }
+            
+            // Mostrar vistas de plugins de forma dinámica
+            // Si hay plugins activos, sus vistas aparecen automáticamente aquí
+            ForEach(0..<PluginRegistry.shared.getHabitoRowViews(for: habit).count, id: \.self) { index in
+                PluginRegistry.shared.getHabitoRowViews(for: habit)[index]
             }
         }
     }
