@@ -55,13 +55,15 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     required init(config: AppConfig) {
         self.config = config
         print("RutinaPlugin inicializado - Enabled: \(isEnabled)")
+        Task { @MainActor in
+            await self.viewModel.loadRutinas()
+        }
     }
     
     // MARK: - Implementación de ViewPlugin
     
     func habitRowView(for habito: Habito) -> some View {
         HStack(spacing: 4) {
-            // Mostrar indicador si el hábito pertenece a rutinas
             let rutinasCount = viewModel.getRutinasConHabito(habitoId: habito.id).count
             if rutinasCount > 0 {
                 Image(systemName: "list.bullet.circle.fill")
@@ -71,6 +73,9 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
+        }
+        .task {
+            await viewModel.loadRutinas()
         }
     }
     

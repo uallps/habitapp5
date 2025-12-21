@@ -9,6 +9,7 @@ internal import SwiftUI
 struct RutinaDetailView: View {
     @Binding var rutina: Rutina
     let habitListViewModel: HabitListViewModel
+    let rutinaViewModel: RutinaViewModel
     let onSave: () -> Void
     
     @State private var habitosDisponibles: [Habito] = []
@@ -20,21 +21,33 @@ struct RutinaDetailView: View {
         Form {
             Section("Información") {
                 TextField("Nombre", text: $rutina.nombre)
+                    .onChange(of: rutina.nombre) { _ in
+                        Task { await rutinaViewModel.updateRutina(rutina) }
+                    }
                 TextField("Descripción (opcional)", text: Binding(
                     get: { rutina.descripcion ?? "" },
-                    set: { rutina.descripcion = $0.isEmpty ? nil : $0 }
+                    set: { newValue in
+                        rutina.descripcion = newValue.isEmpty ? nil : newValue
+                        Task { await rutinaViewModel.updateRutina(rutina) }
+                    }
                 ))
             }
             
             Section("Apariencia") {
                 ColorPicker("Color", selection: Binding(
                     get: { colorFromHex(rutina.color) },
-                    set: { rutina.color = $0.toHex() }
+                    set: { newColor in
+                        rutina.color = newColor.toHex()
+                        Task { await rutinaViewModel.updateRutina(rutina) }
+                    }
                 ))
             }
             
             Section {
                 Toggle("Rutina activa", isOn: $rutina.isActiva)
+                    .onChange(of: rutina.isActiva) { _ in
+                        Task { await rutinaViewModel.updateRutina(rutina) }
+                    }
             }
             
             Section("Hábitos en esta rutina") {
@@ -73,15 +86,7 @@ struct RutinaDetailView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Guardar") {
-                    onSave()
-                    dismiss()
-                }
-                .disabled(rutina.nombre.isEmpty)
-            }
-        }
+        // ...existing code...
         .sheet(isPresented: $showingHabitSelector) {
             NavigationStack {
                 HabitSelectorView(
@@ -115,7 +120,9 @@ struct RutinaDetailView: View {
         if !rutina.habitoIds.contains(habito.id) {
             rutina.habitoIds.append(habito.id)
             Task { @MainActor in
+                await rutinaViewModel.updateRutina(rutina)
                 await loadHabitos()
+                PluginRegistry.shared.pluginStateDidChange()
             }
         }
     }
@@ -123,6 +130,9 @@ struct RutinaDetailView: View {
     private func removeHabitoFromRutina(_ habito: Habito) {
         rutina.habitoIds.removeAll { $0 == habito.id }
         habitosEnRutina.removeAll { $0.id == habito.id }
+        Task { @MainActor in
+            await rutinaViewModel.updateRutina(rutina)
+        }
     }
     
     private func colorFromHex(_ hex: String) -> Color {

@@ -54,6 +54,7 @@ private struct RutinaListContentView: View {
                         NavigationLink(destination: RutinaDetailView(
                             rutina: binding(for: rutina),
                             habitListViewModel: habitListViewModel,
+                            rutinaViewModel: viewModel,
                             onSave: {
                                 Task {
                                     await viewModel.updateRutina(rutina)
