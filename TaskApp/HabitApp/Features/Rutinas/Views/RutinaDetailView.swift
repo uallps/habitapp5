@@ -8,7 +8,7 @@ internal import SwiftUI
 
 struct RutinaDetailView: View {
     @Binding var rutina: Rutina
-    let habitStorageProvider: RutinaViewModel
+    let habitListViewModel: HabitListViewModel
     let onSave: () -> Void
     
     @State private var habitosDisponibles: [Habito] = []
@@ -102,16 +102,21 @@ struct RutinaDetailView: View {
     
     @MainActor
     private func loadHabitos() async {
-        // RutinaViewModel es @MainActor, pero al volver del await no se garantiza el hilo.
-        // Marcando esta función @MainActor nos aseguramos de mutar estado de SwiftUI correctamente.
-        habitosEnRutina = await habitStorageProvider.getHabitosForRutina(rutina)
-        habitosDisponibles = await habitStorageProvider.getAllHabitos()
+        await habitListViewModel.loadHabits()
+        let allHabitos = habitListViewModel.habitos
+        print("[DEBUG] Habitos cargados en RutinaDetailView: \(allHabitos.map { $0.title })")
+        habitosEnRutina = allHabitos.filter { rutina.habitoIds.contains($0.id) }
+        habitosDisponibles = allHabitos
+        print("[DEBUG] Habitos en rutina: \(habitosEnRutina.map { $0.title })")
+        print("[DEBUG] Habitos disponibles para añadir: \(habitosDisponibles.filter { !rutina.habitoIds.contains($0.id) }.map { $0.title })")
     }
     
     private func addHabitoToRutina(_ habito: Habito) {
         if !rutina.habitoIds.contains(habito.id) {
             rutina.habitoIds.append(habito.id)
-            habitosEnRutina.append(habito)
+            Task { @MainActor in
+                await loadHabitos()
+            }
         }
     }
     
@@ -195,22 +200,27 @@ struct HabitSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        List {
-            if habitosDisponibles.isEmpty {
-                Text("No hay hábitos disponibles")
-                    .foregroundColor(.secondary)
-            } else {
-                ForEach(habitosDisponibles) { habito in
-                    Button {
-                        onSelect(habito)
-                    } label: {
-                        HStack {
-                            Image(systemName: "circle")
-                            Text(habito.title)
-                            Spacer()
+        print("[DEBUG] HabitSelectorView: habitosDisponibles count = \(habitosDisponibles.count), ids = \(habitosDisponibles.map { $0.id })")
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if habitosDisponibles.isEmpty {
+                    Text("No hay hábitos disponibles")
+                        .foregroundColor(.secondary)
+                        .padding()
+                } else {
+                    ForEach(habitosDisponibles, id: \.id) { habito in
+                        Button {
+                            onSelect(habito)
+                        } label: {
+                            HStack {
+                                Image(systemName: "circle")
+                                Text(habito.title)
+                                Spacer()
+                            }
                         }
+                        .foregroundColor(.primary)
+                        .padding(.horizontal)
                     }
-                    .foregroundColor(.primary)
                 }
             }
         }

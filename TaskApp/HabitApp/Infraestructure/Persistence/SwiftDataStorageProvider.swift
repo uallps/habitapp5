@@ -40,6 +40,7 @@ class SwiftDataStorageProvider: StorageProvider {
     func loadHabits() async throws -> [Habito] {
         let descriptor = FetchDescriptor<Habito>() // Use FetchDescriptor
         let habits = try context.fetch(descriptor)
+        print("[DEBUG] SwiftDataStorageProvider: Habitos cargados: \(habits.map { $0.title })")
         return habits
     }
 
@@ -52,5 +53,6 @@ class SwiftDataStorageProvider: StorageProvider {
             context.insert(habit)
         }
         try context.save()
+        print("[DEBUG] SwiftDataStorageProvider: Habitos guardados: \(habits.map { $0.title })")
     }
 }

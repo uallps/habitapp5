@@ -28,6 +28,7 @@ struct RutinaListView: View {
 
 private struct RutinaListContentView: View {
     @StateObject private var viewModel: RutinaViewModel
+    @StateObject private var habitListViewModel: HabitListViewModel
     @State private var showingAddRutina = false
     @State private var habitCountCache: [UUID: Int] = [:]
 
@@ -36,6 +37,7 @@ private struct RutinaListContentView: View {
             storageProvider: rutinaStorageProvider,
             habitStorageProvider: habitStorageProvider
         ))
+        _habitListViewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: habitStorageProvider))
     }
 
     var body: some View {
@@ -51,7 +53,7 @@ private struct RutinaListContentView: View {
                     ForEach(viewModel.rutinas) { rutina in
                         NavigationLink(destination: RutinaDetailView(
                             rutina: binding(for: rutina),
-                            habitStorageProvider: viewModel,
+                            habitListViewModel: habitListViewModel,
                             onSave: {
                                 Task {
                                     await viewModel.updateRutina(rutina)
