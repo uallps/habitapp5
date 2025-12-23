@@ -75,7 +75,7 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
             }
         }
         .task {
-            await viewModel.loadRutinas()
+            await self.viewModel.loadRutinas()
         }
     }
     
