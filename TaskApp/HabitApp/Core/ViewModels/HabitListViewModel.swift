@@ -37,7 +37,11 @@ class HabitListViewModel: ObservableObject{
         // Persistir inmediatamente para que cualquier pantalla/feature que lea
         // desde StorageProvider vea el mismo estado que la lista principal.
         Task { @MainActor in
-            try? await storageProvider.saveHabits(habits: habitos)
+            do {
+                try await storageProvider.saveHabits(habits: habitos)
+            } catch {
+                print("[ERROR] Failed saving habits after add: \(error)")
+            }
         }
         
         // Notificar a plugins que se creó un nuevo hábito
@@ -65,7 +69,11 @@ class HabitListViewModel: ObservableObject{
         let deletedIds = offsets.map { habitos[$0].id }
         
         habitos.remove(atOffsets: offsets)
-        try? await storageProvider.saveHabits(habits: habitos)
+        do {
+            try await storageProvider.saveHabits(habits: habitos)
+        } catch {
+            print("[ERROR] Failed saving habits after delete: \(error)")
+        }
         
         // Notificar a plugins después de eliminar
         for id in deletedIds {
@@ -79,7 +87,11 @@ class HabitListViewModel: ObservableObject{
             await PluginRegistry.shared.notifyHabitoWillBeUpdated(habit)
         }
         
-        try? await storageProvider.saveHabits(habits: habitos)
+        do {
+            try await storageProvider.saveHabits(habits: habitos)
+        } catch {
+            print("[ERROR] Failed saving habits: \(error)")
+        }
         
         // Notificar a plugins después de guardar
         for habit in habitos {
@@ -90,21 +102,25 @@ class HabitListViewModel: ObservableObject{
         await updateAllNotifications()
     }
     
-    func toggleCompletion(task: Habito) {
-        if let index = habitos.firstIndex(where: { $0.id == task.id }) {
-            habitos[index].completada.toggle()
-            
-            if habitos[index].completada {
-                habitos[index].fechaCompletitud?.append(Date())
-            } else {
-                //tasks[index].fechaCompletitud?.
-            }
-            
-            // Notificar a plugins que el hábito se actualizó
-            Task {
-                await PluginRegistry.shared.notifyHabitoDidUpdate(habitos[index])
-            }
+    func toggleCompletion(task: Habito) async {
+        guard let index = habitos.firstIndex(where: { $0.id == task.id }) else {
+            return
         }
+
+        habitos[index].completada.toggle()
+
+        if habitos[index].completada {
+            habitos[index].fechaCompletitud?.append(Date())
+        }
+
+        do {
+            try await storageProvider.saveHabits(habits: habitos)
+        } catch {
+            print("[ERROR] Failed saving habits after toggleCompletion: \(error)")
+        }
+
+        await PluginRegistry.shared.notifyHabitoDidUpdate(habitos[index])
+        await updateAllNotifications()
     }
     
     // MARK: - Notification Management

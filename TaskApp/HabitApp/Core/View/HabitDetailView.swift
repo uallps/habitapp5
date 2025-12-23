@@ -8,6 +8,15 @@ struct HabitDetailView: View {
     @EnvironmentObject private var AppConfig: AppConfig
     @State private var showCategorySelection = false
     @State private var selectedCategoryModel: CategoryModel?
+    @State private var pendingSaveTask: Task<Void, Never>?
+
+    private func scheduleSave() {
+        pendingSaveTask?.cancel()
+        pendingSaveTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            onSave?()
+        }
+    }
     
     var body: some View {
         HStack() {
@@ -106,6 +115,13 @@ struct HabitDetailView: View {
                     selectedCategoryModel = CategoryModel.allCategories.first { $0.id == categoryId }
                 }
             }
+            .onChange(of: habit.title) { _, _ in scheduleSave() }
+            .onChange(of: habit.descripcion) { _, _ in scheduleSave() }
+            .onChange(of: habit.completada) { _, _ in scheduleSave() }
+            .onChange(of: habit.fechaFin) { _, _ in scheduleSave() }
+            .onChange(of: habit.prioridad) { _, _ in scheduleSave() }
+            .onChange(of: habit.reminderDate) { _, _ in scheduleSave() }
+            .onChange(of: habit.categoria) { _, _ in scheduleSave() }
             .onChange(of: selectedCategoryModel) { oldValue, newValue in
                 habit.categoria = newValue?.id
             }
