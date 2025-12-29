@@ -6,8 +6,10 @@
 //
 internal import SwiftUI
 
+
 struct SettingsView: View {
     @EnvironmentObject private var appConfig: AppConfig
+    @ObservedObject private var pluginRegistry = PluginRegistry.shared
 
     var body: some View {
         Form {
@@ -24,7 +26,7 @@ struct SettingsView: View {
             
             // Sección dinámica de plugins
             // Muestra configuración de plugins instalados (si existen)
-            let pluginViews = PluginRegistry.shared.getPluginSettingsViews()
+            let pluginViews = pluginRegistry.getPluginSettingsViews()
             if !pluginViews.isEmpty {
                 Section(header: Text("Plugins")) {
                     ForEach(0..<pluginViews.count, id: \.self) { index in
