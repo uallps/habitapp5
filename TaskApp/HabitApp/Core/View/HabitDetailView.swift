@@ -233,5 +233,5 @@ struct HabitDetailView: View {
 }
 
 #Preview {
-    HabitDetailView(habit: .constant(Habito(title: "Ejemplo de Habito", descripcion: "descripcion", prioridad: .high, fechaFin: Date(), completada: false)))
+    HabitDetailView(habit: .constant(Habito(title: "Ejemplo de Habito", descripcion: "descripcion", prioridad: .high, fechaFin: Date())))
 }
