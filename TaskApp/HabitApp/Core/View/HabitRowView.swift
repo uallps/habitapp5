@@ -10,11 +10,29 @@ struct HabitRowView: View {
     var body: some View {
         HStack {
             Button(action: toggleCompletion){
-                Image(systemName: habit.completada ? "checkmark.circle.fill" : "circle")
+                Image(systemName: habit.estaCompletado(en: Date()) ? "checkmark.circle.fill" : "circle")
             }.buttonStyle(.plain)
             VStack(alignment: .leading) {
                 Text(habit.title)
-                    .strikethrough(habit.completada)
+                    .strikethrough(habit.estaCompletado(en: Date()))
+                
+                // Mostrar días configurados
+                if !habit.diasSemana.isEmpty {
+                    HStack(spacing: 2) {
+                        ForEach(habit.diasConfigurados) { dia in
+                            Text(dia.nombreCorto)
+                                .font(.system(size: 10, weight: .medium))
+                                .frame(width: 20, height: 20)
+                                .background(
+                                    habit.estaCompletado(en: proximaOcurrencia(de: dia))
+                                        ? Color.green.opacity(0.3)
+                                        : Color.gray.opacity(0.2)
+                                )
+                                .cornerRadius(4)
+                        }
+                    }
+                    .padding(.top, 2)
+                }
                 
                 // Mostrar categoría si existe
                 if let categoryId = habit.categoria,
@@ -51,6 +69,30 @@ struct HabitRowView: View {
                 PluginRegistry.shared.getHabitoRowViews(for: habit)[index]
             }
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func proximaOcurrencia(de dia: DiaSemana) -> Date {
+        let calendar = Calendar.current
+        let hoy = Date()
+        let weekdayHoy = calendar.component(.weekday, from: hoy)
+        
+        if weekdayHoy == dia.rawValue {
+            return calendar.startOfDay(for: hoy)
+        }
+        
+        // Buscar la próxima ocurrencia
+        var fechaBusqueda = hoy
+        for _ in 0..<7 {
+            fechaBusqueda = calendar.date(byAdding: .day, value: 1, to: fechaBusqueda)!
+            let weekday = calendar.component(.weekday, from: fechaBusqueda)
+            if weekday == dia.rawValue {
+                return calendar.startOfDay(for: fechaBusqueda)
+            }
+        }
+        
+        return calendar.startOfDay(for: hoy)
     }
     
     private func priorityColor(for priority: Prioridad) -> Color {

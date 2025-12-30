@@ -59,9 +59,6 @@ struct HabitDetailView: View {
                 }
                 
                 Section(header: Text("Detalles del Hábito")) {
-                    Toggle(isOn: $habit.completada) {
-                        Text("Completada")
-                    }
                     if AppConfig.showDueDates {
                         Toggle(isOn: Binding(
                             get: { habit.fechaFin != nil },
@@ -97,6 +94,89 @@ struct HabitDetailView: View {
                     ReminderEditorView(reminderDate: $habit.reminderDate)
                 }
                 
+                // Sección de Frecuencia
+                Section(header: Text("Frecuencia")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Selecciona los días de la semana")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 8) {
+                            ForEach(DiaSemana.allCases) { dia in
+                                Button(action: {
+                                    toggleDiaSemana(dia)
+                                }) {
+                                    Text(dia.nombreCorto)
+                                        .font(.system(size: 14, weight: .medium))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            habit.diasSemana.contains(dia.rawValue) 
+                                                ? Color.accentColor 
+                                                : Color.gray.opacity(0.2)
+                                        )
+                                        .foregroundColor(
+                                            habit.diasSemana.contains(dia.rawValue) 
+                                                ? .white 
+                                                : .primary
+                                        )
+                                        .cornerRadius(8)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        
+                        if habit.diasSemana.isEmpty {
+                            Text("Ningún día seleccionado (se considera diario)")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .padding(.top, 4)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                // Sección de Historial de Completitud
+                Section(header: Text("Historial de Completitud")) {
+                    if habit.fechaCompletitud.isEmpty {
+                        Text("Aún no has completado este hábito")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("\(habit.fechaCompletitud.count) días completados")
+                                .font(.headline)
+                            
+                            // Mostrar últimos 7 días completados
+                            ForEach(habit.fechaCompletitud.sorted(by: >).prefix(7), id: \.self) { fecha in
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                    Text(fecha.formatted(date: .abbreviated, time: .omitted))
+                                    Spacer()
+                                    Text(nombreDiaSemana(fecha))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            if habit.fechaCompletitud.count > 7 {
+                                Text("Y \(habit.fechaCompletitud.count - 7) días más...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                
                 // Sección dinámica de plugins
                 // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
                 ForEach(0..<PluginRegistry.shared.getHabitoDetailViews(for: $habit).count, id: \.self) { index in
@@ -117,11 +197,11 @@ struct HabitDetailView: View {
             }
             .onChange(of: habit.title) { _, _ in scheduleSave() }
             .onChange(of: habit.descripcion) { _, _ in scheduleSave() }
-            .onChange(of: habit.completada) { _, _ in scheduleSave() }
             .onChange(of: habit.fechaFin) { _, _ in scheduleSave() }
             .onChange(of: habit.prioridad) { _, _ in scheduleSave() }
             .onChange(of: habit.reminderDate) { _, _ in scheduleSave() }
             .onChange(of: habit.categoria) { _, _ in scheduleSave() }
+            .onChange(of: habit.diasSemana) { _, _ in scheduleSave() }
             .onChange(of: selectedCategoryModel) { oldValue, newValue in
                 habit.categoria = newValue?.id
             }
@@ -132,6 +212,23 @@ struct HabitDetailView: View {
             }
         }
         Spacer()
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func toggleDiaSemana(_ dia: DiaSemana) {
+        if let index = habit.diasSemana.firstIndex(of: dia.rawValue) {
+            habit.diasSemana.remove(at: index)
+        } else {
+            habit.diasSemana.append(dia.rawValue)
+            habit.diasSemana.sort()
+        }
+    }
+    
+    private func nombreDiaSemana(_ fecha: Date) -> String {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: fecha)
+        return DiaSemana(rawValue: weekday)?.nombre ?? ""
     }
 }
 

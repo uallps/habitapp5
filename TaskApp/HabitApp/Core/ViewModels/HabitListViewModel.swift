@@ -107,11 +107,8 @@ class HabitListViewModel: ObservableObject{
             return
         }
 
-        habitos[index].completada.toggle()
-
-        if habitos[index].completada {
-            habitos[index].fechaCompletitud?.append(Date())
-        }
+        // Toggle completitud para el día actual
+        habitos[index].toggleCompletitud(para: Date())
 
         do {
             try await storageProvider.saveHabits(habits: habitos)
