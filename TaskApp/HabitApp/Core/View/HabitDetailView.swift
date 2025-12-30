@@ -160,7 +160,14 @@ struct HabitDetailView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
-                                    Text(fecha.formatted(date: .abbreviated, time: .omitted))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(fecha.formatted(date: .abbreviated, time: .omitted))
+                                        if !habit.debeRealizarse(en: fecha) {
+                                            Text("(fuera de días establecidos)")
+                                                .font(.caption2)
+                                                .foregroundColor(.orange)
+                                        }
+                                    }
                                     Spacer()
                                     Text(nombreDiaSemana(fecha))
                                         .font(.caption)
