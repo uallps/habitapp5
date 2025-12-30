@@ -138,7 +138,7 @@ class Habito: Identifiable, Codable {
     }
     
     /// Marca el hábito como completado para una fecha específica
-    mutating func marcarCompletado(en fecha: Date) {
+    func marcarCompletado(en fecha: Date) {
         let calendar = Calendar.current
         let fechaNormalizada = calendar.startOfDay(for: fecha)
         
@@ -149,7 +149,7 @@ class Habito: Identifiable, Codable {
     }
     
     /// Desmarca el hábito como completado para una fecha específica
-    mutating func desmarcarCompletado(en fecha: Date) {
+    func desmarcarCompletado(en fecha: Date) {
         let calendar = Calendar.current
         fechaCompletitud.removeAll { completedDate in
             calendar.isDate(completedDate, inSameDayAs: fecha)
@@ -159,7 +159,7 @@ class Habito: Identifiable, Codable {
     /// Alterna el estado de completitud para una fecha específica
     /// Esta función encapsula la lógica de negocio de marcar/desmarcar
     /// Debe ser llamada desde el ViewModel, no directamente desde la Vista
-    mutating func toggleCompletitud(para fecha: Date = Date()) {
+    func toggleCompletitud(para fecha: Date = Date()) {
         if estaCompletado(en: fecha) {
             desmarcarCompletado(en: fecha)
         } else {

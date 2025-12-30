@@ -4,6 +4,8 @@
 //
 //  Created by Aula03 on 5/11/25.
 //
+import Foundation
+
 class MockStorageProvider: StorageProvider {
     private var storedHabits: [Habito] = [
         Habito(title: "Mock Habit 1", descripcion: "Descripcion"),
