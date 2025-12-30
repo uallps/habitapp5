@@ -90,12 +90,9 @@ class RutinaViewModel: ObservableObject {
             
             for habitoId in rutina.habitoIds {
                 if let index = habitos.firstIndex(where: { $0.id == habitoId }) {
-                    if !habitos[index].completada {
-                        habitos[index].completada = true
-                        if habitos[index].fechaCompletitud == nil {
-                            habitos[index].fechaCompletitud = []
-                        }
-                        habitos[index].fechaCompletitud?.append(Date())
+                    // Usar el nuevo método toggleCompletitud para marcar como completado hoy
+                    if !habitos[index].estaCompletado(en: Date()) {
+                        habitos[index].marcarCompletado(en: Date())
                     }
                 }
             }

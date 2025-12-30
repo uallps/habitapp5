@@ -45,13 +45,26 @@ class SwiftDataStorageProvider: StorageProvider {
     }
 
     func saveHabits(habits: [Habito]) async throws {
+        // Cargar hábitos existentes
         let savedHabits = try await self.loadHabits()
-        for habit in savedHabits {
+        let savedIds = Set(savedHabits.map { $0.id })
+        let newIds = Set(habits.map { $0.id })
+        
+        // Eliminar hábitos que ya no están en la lista
+        let idsToDelete = savedIds.subtracting(newIds)
+        for habit in savedHabits where idsToDelete.contains(habit.id) {
             context.delete(habit)
         }
-        for habit in habits {
+        
+        // Insertar solo los hábitos nuevos (que no existían antes)
+        let idsToInsert = newIds.subtracting(savedIds)
+        for habit in habits where idsToInsert.contains(habit.id) {
             context.insert(habit)
         }
+        
+        // Los hábitos existentes ya están en el contexto y se actualizarán automáticamente
+        // porque SwiftData trackea los cambios en objetos @Model
+        
         try context.save()
         print("[DEBUG] SwiftDataStorageProvider: Habitos guardados: \(habits.map { $0.title })")
     }

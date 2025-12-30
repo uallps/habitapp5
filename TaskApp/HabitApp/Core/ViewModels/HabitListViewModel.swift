@@ -31,29 +31,23 @@ class HabitListViewModel: ObservableObject{
         }
     }
     
-    func addHabit(habit: Habito) {
+    func addHabit(habit: Habito) async {
         habitos.append(habit)
 
         // Persistir inmediatamente para que cualquier pantalla/feature que lea
         // desde StorageProvider vea el mismo estado que la lista principal.
-        Task { @MainActor in
-            do {
-                try await storageProvider.saveHabits(habits: habitos)
-            } catch {
-                print("[ERROR] Failed saving habits after add: \(error)")
-            }
+        do {
+            try await storageProvider.saveHabits(habits: habitos)
+        } catch {
+            print("[ERROR] Failed saving habits after add: \(error)")
         }
         
         // Notificar a plugins que se creó un nuevo hábito
-        Task {
-            await PluginRegistry.shared.notifyHabitoDidCreate(habit)
-        }
+        await PluginRegistry.shared.notifyHabitoDidCreate(habit)
         
         // Programar notificación si tiene fecha de recordatorio
         if let reminderDate = habit.reminderDate {
-            Task {
-                try? await notificationService.scheduleNotification(for: habit, at: reminderDate)
-            }
+            try? await notificationService.scheduleNotification(for: habit, at: reminderDate)
         }
     }
     
