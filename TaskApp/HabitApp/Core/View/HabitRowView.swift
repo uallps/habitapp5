@@ -16,23 +16,37 @@ struct HabitRowView: View {
                 Text(habit.title)
                     .strikethrough(habit.estaCompletado(en: Date()))
                 
-                // Mostrar días configurados
-                if !habit.diasSemana.isEmpty {
-                    HStack(spacing: 2) {
-                        ForEach(habit.diasConfigurados) { dia in
-                            Text(dia.nombreCorto)
-                                .font(.system(size: 10, weight: .medium))
-                                .frame(width: 20, height: 20)
-                                .background(
-                                    habit.estaCompletado(en: proximaOcurrencia(de: dia))
-                                        ? Color.green.opacity(0.3)
-                                        : Color.gray.opacity(0.2)
-                                )
-                                .cornerRadius(4)
+                // Mostrar configuración de frecuencia
+                HStack(spacing: 4) {
+                    Text(habit.tipoFrecuenciaActual == .semanal ? "Semanal:" : "Mensual:")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    if habit.tipoFrecuenciaActual == .semanal && !habit.diasSemana.isEmpty {
+                        HStack(spacing: 2) {
+                            ForEach(habit.diasConfigurados) { dia in
+                                Text(dia.nombreCorto)
+                                    .font(.system(size: 10, weight: .medium))
+                                    .frame(width: 18, height: 18)
+                                    .background(
+                                        habit.estaCompletado(en: proximaOcurrencia(de: dia))
+                                            ? Color.green.opacity(0.3)
+                                            : Color.gray.opacity(0.2)
+                                    )
+                                    .cornerRadius(4)
+                            }
                         }
+                    } else if habit.tipoFrecuenciaActual == .mensual && !habit.diasMes.isEmpty {
+                        Text(formatDiasMes(habit.diasMes))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
-                    .padding(.top, 2)
+                    
+                    Text("(\(habit.vecesPorPeriodoActual)x)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
+                .padding(.top, 2)
                 
                 // Mostrar categoría si existe
                 if let categoryId = habit.categoria,
@@ -72,6 +86,14 @@ struct HabitRowView: View {
     }
     
     // MARK: - Helper Methods
+    
+    private func formatDiasMes(_ dias: [Int]) -> String {
+        if dias.isEmpty { return "" }
+        if dias.count <= 3 {
+            return "Días " + dias.map { String($0) }.joined(separator: ", ")
+        }
+        return "Días \(dias.first!)...\(dias.last!)"
+    }
     
     private func proximaOcurrencia(de dia: DiaSemana) -> Date {
         let calendar = Calendar.current
