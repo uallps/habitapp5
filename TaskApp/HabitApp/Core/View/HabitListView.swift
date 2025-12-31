@@ -55,7 +55,7 @@ struct HabitListView: View {
                 }
             })
             .contextMenu {
-                Button("Eliminar Tarea") {
+                Button("Eliminar hábito") {
                     deleteHabit(habit)
                 }
             }

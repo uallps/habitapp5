@@ -77,6 +77,13 @@ private struct RutinaListContentView: View {
                                 }
                             )
                         }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                deleteRutina(rutina)
+                            } label: {
+                                Label("Eliminar rutina", systemImage: "trash")
+                            }
+                        }
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button(role: .destructive) {
                                 deleteRutina(rutina)
