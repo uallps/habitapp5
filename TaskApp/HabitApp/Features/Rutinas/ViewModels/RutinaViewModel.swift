@@ -79,28 +79,33 @@ class RutinaViewModel: ObservableObject {
     // MARK: - Operaciones con Hábitos
     
     /// Ejecuta todos los hábitos de una rutina (marca como completados)
-    func ejecutarRutina(_ rutina: Rutina) async {
+    func ejecutarRutina(_ rutina: Rutina) async -> (markedAsCompleted: Int, totalHabits: Int)? {
         guard rutina.isActiva else {
             print("⚠️ Rutina \(rutina.nombre) está desactivada")
-            return
+            return nil
         }
         
         do {
             var habitos = try await habitStorageProvider.loadHabits()
+
+            var markedCount = 0
             
             for habitoId in rutina.habitoIds {
                 if let index = habitos.firstIndex(where: { $0.id == habitoId }) {
                     // Usar el nuevo método toggleCompletitud para marcar como completado hoy
                     if !habitos[index].estaCompletado(en: Date()) {
                         habitos[index].marcarCompletado(en: Date())
+                        markedCount += 1
                     }
                 }
             }
             
             try await habitStorageProvider.saveHabits(habits: habitos)
             print("✅ Rutina '\(rutina.nombre)' ejecutada: \(rutina.habitoIds.count) hábitos")
+            return (markedAsCompleted: markedCount, totalHabits: rutina.habitoIds.count)
         } catch {
             print("❌ Error ejecutando rutina: \(error)")
+            return nil
         }
     }
     

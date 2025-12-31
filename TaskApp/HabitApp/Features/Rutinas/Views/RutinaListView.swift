@@ -32,6 +32,10 @@ private struct RutinaListContentView: View {
     @State private var showingAddRutina = false
     @State private var habitCountCache: [UUID: Int] = [:]
 
+    @State private var showingExecutionAlert = false
+    @State private var executionAlertTitle = ""
+    @State private var executionAlertMessage = ""
+
     init(rutinaStorageProvider: RutinaStorageProvider, habitStorageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: RutinaViewModel(
             storageProvider: rutinaStorageProvider,
@@ -72,16 +76,27 @@ private struct RutinaListContentView: View {
                                 },
                                 onEjecutar: {
                                     Task {
-                                        await viewModel.ejecutarRutina(rutina)
+                                        if let result = await viewModel.ejecutarRutina(rutina) {
+                                            executionAlertTitle = "Rutina ejecutada"
+                                            if result.totalHabits == 0 {
+                                                executionAlertMessage = "Esta rutina no tiene hábitos."
+                                            } else if result.markedAsCompleted == 0 {
+                                                executionAlertMessage = "No había hábitos pendientes para hoy (0/\(result.totalHabits))."
+                                            } else {
+                                                executionAlertMessage = "Se marcaron \(result.markedAsCompleted)/\(result.totalHabits) hábitos como completados hoy."
+                                            }
+                                        } else {
+                                            executionAlertTitle = "No se pudo ejecutar"
+                                            executionAlertMessage = "La rutina está desactivada o hubo un error al guardar."
+                                        }
+                                        showingExecutionAlert = true
                                     }
                                 }
                             )
                         }
                         .contextMenu {
-                            Button(role: .destructive) {
+                            Button("Eliminar rutina") {
                                 deleteRutina(rutina)
-                            } label: {
-                                Label("Eliminar rutina", systemImage: "trash")
                             }
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -121,6 +136,11 @@ private struct RutinaListContentView: View {
                         Image(systemName: "plus")
                     }
                 }
+            }
+            .alert(executionAlertTitle, isPresented: $showingExecutionAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(executionAlertMessage)
             }
             .sheet(isPresented: $showingAddRutina) {
                 NavigationStack {
