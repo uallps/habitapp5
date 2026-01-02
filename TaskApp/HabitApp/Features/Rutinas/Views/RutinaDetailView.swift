@@ -7,6 +7,23 @@
 internal import SwiftUI
 
 struct RutinaDetailView: View {
+    private enum Layout {
+        static let constrainedWidth: CGFloat = 560
+    }
+
+    @ViewBuilder
+    private func macConstrainedRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        #if os(macOS)
+        HStack(spacing: 0) {
+            content()
+                .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
+            Spacer(minLength: 0)
+        }
+        #else
+        content()
+        #endif
+    }
+
     @Binding var rutina: Rutina
     let habitListViewModel: HabitListViewModel
     let rutinaViewModel: RutinaViewModel
@@ -19,21 +36,32 @@ struct RutinaDetailView: View {
     
     var body: some View {
         Form {
-            Section("Información") {
-                TextField("Nombre", text: $rutina.nombre)
-                    .onChange(of: rutina.nombre) { _ in
-                        Task { await rutinaViewModel.updateRutina(rutina) }
-                    }
-                TextField("Descripción (opcional)", text: Binding(
-                    get: { rutina.descripcion ?? "" },
-                    set: { newValue in
-                        rutina.descripcion = newValue.isEmpty ? nil : newValue
-                        Task { await rutinaViewModel.updateRutina(rutina) }
-                    }
-                ))
+            Section(header: AppSectionHeader(title: "Información")) {
+                macConstrainedRow {
+                    TextField("Nombre", text: $rutina.nombre)
+                        #if os(iOS)
+                        .textInputAutocapitalization(.words)
+                        #endif
+                        .onChange(of: rutina.nombre) { _ in
+                            Task { await rutinaViewModel.updateRutina(rutina) }
+                        }
+                }
+
+                macConstrainedRow {
+                    TextField("Descripción (opcional)", text: Binding(
+                        get: { rutina.descripcion ?? "" },
+                        set: { newValue in
+                            rutina.descripcion = newValue.isEmpty ? nil : newValue
+                            Task { await rutinaViewModel.updateRutina(rutina) }
+                        }
+                    ))
+                    #if os(iOS)
+                    .textInputAutocapitalization(.sentences)
+                    #endif
+                }
             }
             
-            Section("Apariencia") {
+            Section(header: AppSectionHeader(title: "Apariencia")) {
                 ColorPicker("Color", selection: Binding(
                     get: { colorFromHex(rutina.color) },
                     set: { newColor in
@@ -50,24 +78,30 @@ struct RutinaDetailView: View {
                     }
             }
             
-            Section("Hábitos en esta rutina") {
+            Section(header: AppSectionHeader(title: "Hábitos en esta rutina")) {
                 if habitosEnRutina.isEmpty {
                     Text("No hay hábitos en esta rutina")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .font(.caption)
                 } else {
                     ForEach(habitosEnRutina) { habito in
-                        HStack {
-                            Image(systemName: "circle")
-                            Text(habito.title)
-                            Spacer()
-                            Button(role: .destructive) {
-                                removeHabitoFromRutina(habito)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.red)
+                        macConstrainedRow {
+                            HStack(spacing: 12) {
+                                Image(systemName: "circle")
+                                    .foregroundStyle(.secondary)
+                                Text(habito.title)
+                                    .foregroundStyle(.primary)
+                                Spacer(minLength: 12)
+                                Button(role: .destructive) {
+                                    removeHabitoFromRutina(habito)
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
+                            .padding(.trailing, 12)
+                            .contentShape(Rectangle())
                         }
                     }
                 }
@@ -82,6 +116,7 @@ struct RutinaDetailView: View {
                 }
             }
         }
+        .appFormContainer()
         .navigationTitle("Editar Rutina")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -109,11 +144,8 @@ struct RutinaDetailView: View {
     private func loadHabitos() async {
         await habitListViewModel.loadHabits()
         let allHabitos = habitListViewModel.habitos
-        print("[DEBUG] Habitos cargados en RutinaDetailView: \(allHabitos.map { $0.title })")
         habitosEnRutina = allHabitos.filter { rutina.habitoIds.contains($0.id) }
         habitosDisponibles = allHabitos
-        print("[DEBUG] Habitos en rutina: \(habitosEnRutina.map { $0.title })")
-        print("[DEBUG] Habitos disponibles para añadir: \(habitosDisponibles.filter { !rutina.habitoIds.contains($0.id) }.map { $0.title })")
     }
     
     private func addHabitoToRutina(_ habito: Habito) {
@@ -153,6 +185,23 @@ struct RutinaDetailView: View {
 // MARK: - Editor para nueva rutina
 
 struct RutinaEditorView: View {
+    private enum Layout {
+        static let constrainedWidth: CGFloat = 560
+    }
+
+    @ViewBuilder
+    private func macConstrainedRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        #if os(macOS)
+        HStack(spacing: 0) {
+            content()
+                .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
+            Spacer(minLength: 0)
+        }
+        #else
+        content()
+        #endif
+    }
+
     let habitStorageProvider: RutinaViewModel
     let onSave: (Rutina) -> Void
     
@@ -164,16 +213,28 @@ struct RutinaEditorView: View {
     
     var body: some View {
         Form {
-            Section("Información") {
-                TextField("Nombre", text: $nombre)
-                TextField("Descripción (opcional)", text: $descripcion)
+            Section(header: AppSectionHeader(title: "Información")) {
+                macConstrainedRow {
+                    TextField("Nombre", text: $nombre)
+                        #if os(iOS)
+                        .textInputAutocapitalization(.words)
+                        #endif
+                }
+
+                macConstrainedRow {
+                    TextField("Descripción (opcional)", text: $descripcion)
+                        #if os(iOS)
+                        .textInputAutocapitalization(.sentences)
+                        #endif
+                }
             }
             
-            Section("Apariencia") {
+            Section(header: AppSectionHeader(title: "Apariencia")) {
 
                 ColorPicker("Color", selection: $color)
             }
         }
+        .appFormContainer()
         .navigationTitle("Nueva Rutina")        
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -210,30 +271,36 @@ struct HabitSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        print("[DEBUG] HabitSelectorView: habitosDisponibles count = \(habitosDisponibles.count), ids = \(habitosDisponibles.map { $0.id })")
-        return ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 12) {
                 if habitosDisponibles.isEmpty {
                     Text("No hay hábitos disponibles")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .padding()
                 } else {
                     ForEach(habitosDisponibles, id: \.id) { habito in
                         Button {
                             onSelect(habito)
                         } label: {
-                            HStack {
+                            HStack(spacing: 12) {
                                 Image(systemName: "circle")
+                                    .foregroundStyle(.secondary)
                                 Text(habito.title)
+                                    .foregroundStyle(.primary)
                                 Spacer()
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .foregroundColor(.primary)
-                        .padding(.horizontal)
+                        .buttonStyle(.plain)
+                        .appCard(padding: 12)
                     }
                 }
             }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .appScrollBackground()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .navigationTitle("Seleccionar Hábito")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)

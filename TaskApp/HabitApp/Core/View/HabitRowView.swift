@@ -11,40 +11,44 @@ struct HabitRowView: View {
         HStack {
             Button(action: toggleCompletion){
                 Image(systemName: habit.estaCompletado(en: Date()) ? "checkmark.circle.fill" : "circle")
-            }.buttonStyle(.plain)
+                    .font(.title3)
+                    .foregroundStyle(habit.estaCompletado(en: Date()) ? Color.accentColor : Color.secondary)
+            }
+            .buttonStyle(.plain)
             VStack(alignment: .leading) {
                 Text(habit.title)
+                    .font(.body.weight(.semibold))
                     .strikethrough(habit.estaCompletado(en: Date()))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
                 
                 // Mostrar configuración de frecuencia
                 HStack(spacing: 4) {
                     Text(habit.tipoFrecuenciaActual == .semanal ? "Semanal:" : "Mensual:")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     
                     if habit.tipoFrecuenciaActual == .semanal && !habit.diasSemana.isEmpty {
                         HStack(spacing: 2) {
                             ForEach(habit.diasConfigurados) { dia in
+                                let isDone = habit.estaCompletado(en: proximaOcurrencia(de: dia))
                                 Text(dia.nombreCorto)
-                                    .font(.system(size: 10, weight: .medium))
+                                    .font(.caption2.weight(.medium))
                                     .frame(width: 18, height: 18)
-                                    .background(
-                                        habit.estaCompletado(en: proximaOcurrencia(de: dia))
-                                            ? Color.green.opacity(0.3)
-                                            : Color.gray.opacity(0.2)
-                                    )
-                                    .cornerRadius(4)
+                                    .background(isDone ? Color.accentColor.opacity(0.18) : AppStyle.subtleFill)
+                                    .foregroundStyle(isDone ? .primary : .secondary)
+                                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                             }
                         }
                     } else if habit.tipoFrecuenciaActual == .mensual && !habit.diasMes.isEmpty {
                         Text(formatDiasMes(habit.diasMes))
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     
                     Text("(\(habit.vecesPorPeriodoActual)x)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.top, 2)
                 
@@ -63,17 +67,17 @@ struct HabitRowView: View {
                 if AppConfig.showDueDates, let dueDate = habit.fechaFin {
                     Text("Vence: \(dueDate.formatted(date: .abbreviated, time: .shortened))")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 if AppConfig.showPriorities, let priority = habit.prioridad {
                     Text("Prioridad: \(priority.rawValue)")
                         .font(.caption)
-                        .foregroundColor(priorityColor(for: priority))
+                        .foregroundStyle(priorityColor(for: priority))
                 }
                 if AppConfig.enableReminders, let reminderDate = habit.reminderDate {
                     Label("Recordatorio: \(reminderDate.formatted(date: .abbreviated, time: .shortened))", systemImage: "bell")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.secondary)
                 }
             }
             
@@ -83,6 +87,7 @@ struct HabitRowView: View {
                 PluginRegistry.shared.getHabitoRowViews(for: habit)[index]
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Helper Methods

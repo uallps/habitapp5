@@ -21,25 +21,26 @@ struct RutinaRowView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(rutina.nombre)
-                    .font(.headline)
+                    .font(.body.weight(.semibold))
                     .strikethrough(!rutina.isActiva)
+                    .foregroundStyle(.primary)
                 
                 HStack(spacing: 8) {
                     Label("\(habitCount)", systemImage: "list.bullet")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     
                     if !rutina.isActiva {
                         Text("Desactivada")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                     }
                 }
                 
                 if let descripcion = rutina.descripcion, !descripcion.isEmpty {
                     Text(descripcion)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
@@ -51,7 +52,7 @@ struct RutinaRowView: View {
                 Button(action: onEjecutar) {
                     Image(systemName: "play.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.tint)
                 }
                 .buttonStyle(.plain)
             }

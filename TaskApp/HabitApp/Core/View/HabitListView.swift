@@ -16,27 +16,30 @@ struct HabitListView: View {
     }
     
     var body: some View {
-        VStack{
-            NavigationStack{
-                List {
-                    ForEach($viewModel.habitos) { $habit in
-                        habitRow(habit: habit)
-                    }
-                    .onDelete { indexSet in
-                        _Concurrency.Task {
-                            await viewModel.removeHabits(atOffsets: indexSet)
-                        }
+        NavigationStack {
+            List {
+                ForEach($viewModel.habitos) { $habit in
+                    habitRow(habit: habit)
+                }
+                .onDelete { indexSet in
+                    _Concurrency.Task {
+                        await viewModel.removeHabits(atOffsets: indexSet)
                     }
                 }
-                .toolbar {
-                    Button("Añadir Hábito") {
+            }
+            .appListContainer()
+            .navigationTitle("Hábitos")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
                         addNewHabit()
+                    } label: {
+                        Label("Añadir", systemImage: "plus")
                     }
                 }
-                .navigationTitle("Hábitos")
-                .task {
-                    await viewModel.loadHabits()
-                }
+            }
+            .task {
+                await viewModel.loadHabits()
             }
         }
     }
@@ -54,12 +57,16 @@ struct HabitListView: View {
                     await viewModel.toggleCompletion(task: habit)
                 }
             })
+            .appCard(padding: 14)
+            .contentShape(Rectangle())
             .contextMenu {
                 Button("Eliminar hábito") {
                     deleteHabit(habit)
                 }
             }
         }
+        .buttonStyle(.plain)
+        .appListRowCard()
     }
     
     private func binding(for habit: Habito) -> Binding<Habito> {

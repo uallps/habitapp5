@@ -19,7 +19,7 @@ struct CategorySelectionView: View {
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
+            LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(viewModel.filteredCategories) { category in
                     CategoryCardView(
                         category: category,
@@ -30,8 +30,9 @@ struct CategorySelectionView: View {
                     }
                 }
             }
-            .padding()
+            .padding(16)
         }
+        .appScrollBackground()
         .navigationTitle("Seleccionar Categoría")
         #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -73,26 +74,23 @@ struct CategoryCardView: View {
                 
                 Image(systemName: category.iconName)
                     .font(.system(size: 28))
-                    .foregroundColor(category.color)
+                    .foregroundStyle(category.color)
             }
             
             Text(category.name)
-                .font(.caption)
-                .fontWeight(isSelected ? .bold : .regular)
+                .font(.caption.weight(isSelected ? .semibold : .regular))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .frame(height: 32)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? category.color.opacity(0.1) : Color.clear)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(isSelected ? category.color : Color.gray.opacity(0.2), lineWidth: isSelected ? 2 : 1)
-        )
+        .appCard(padding: 12)
+        .overlay {
+            if isSelected {
+                RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius, style: .continuous)
+                    .stroke(category.color, lineWidth: 2)
+            }
+        }
     }
 }
 

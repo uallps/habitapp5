@@ -30,11 +30,22 @@ struct SettingsView: View {
             if !pluginViews.isEmpty {
                 Section(header: Text("Plugins")) {
                     ForEach(0..<pluginViews.count, id: \.self) { index in
+                        #if os(macOS)
+                        HStack(spacing: 0) {
+                            pluginViews[index]
+                                .frame(maxWidth: 560, alignment: .leading)
+                            Spacer(minLength: 0)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
+                        #else
                         pluginViews[index]
+                        #endif
                     }
                 }
             }
         }
-        .navigationTitle("Settings")
+        .appFormContainer()
+        .navigationTitle("Ajustes")
     }
 }

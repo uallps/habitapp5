@@ -93,7 +93,11 @@ private struct RutinaListContentView: View {
                                     }
                                 }
                             )
+                            .appCard(padding: 14)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
+                        .appListRowCard()
                         .contextMenu {
                             Button("Eliminar rutina") {
                                 deleteRutina(rutina)
@@ -127,6 +131,7 @@ private struct RutinaListContentView: View {
                     }
                 }
             }
+            .appListContainer()
             .navigationTitle("Rutinas")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {

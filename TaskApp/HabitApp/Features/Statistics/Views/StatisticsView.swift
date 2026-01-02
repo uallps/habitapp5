@@ -11,17 +11,7 @@ struct StatisticsView: View {
     @StateObject private var viewModel = StatisticsViewModel()
     
     var body: some View {
-        ZStack(alignment: .top) {
-            // Fondo sólido
-            #if os(iOS)
-            Color(UIColor.systemGroupedBackground)
-                .ignoresSafeArea()
-            #else
-            Color(NSColor.windowBackgroundColor)
-                .ignoresSafeArea()
-            #endif
-            
-            ScrollView {
+        ScrollView {
                 if viewModel.isLoading {
                     ProgressView("Cargando estadísticas...")
                         .padding()
@@ -130,13 +120,13 @@ struct StatisticsView: View {
                         description: Text("Aún no hay datos suficientes para mostrar estadísticas")
                     )
                 }
-            }
-            .frame(maxWidth: .infinity)
         }
+        .appScrollBackground()
+        .frame(maxWidth: .infinity)
         .navigationTitle("Estadísticas")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
-        .toolbarBackground(Color(UIColor.systemGroupedBackground), for: .navigationBar)
+        .toolbarBackground(AppStyle.screenBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         #endif
         .toolbar {
@@ -153,7 +143,6 @@ struct StatisticsView: View {
             .task {
                 await viewModel.loadStatistics()
             }
-        }
 }
 
 // MARK: - Section Header
@@ -162,9 +151,8 @@ struct SectionHeaderView: View {
     
     var body: some View {
         Text(title)
-            .font(.headline)
-            .fontWeight(.bold)
-            .foregroundColor(.primary)
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(.primary)
     }
 }
 
@@ -180,29 +168,21 @@ struct StatisticCardView: View {
             HStack {
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
                 Spacer()
             }
             
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
-        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color.opacity(0.1))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(color.opacity(0.3), lineWidth: 1)
-        )
+        .appCard(padding: 14)
     }
 }
 
@@ -218,7 +198,7 @@ struct ProgressStatisticCardView: View {
             HStack {
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
                 
                 Text(title)
                     .font(.subheadline)
@@ -229,21 +209,13 @@ struct ProgressStatisticCardView: View {
                 Text("\(Int(value * 100))%")
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
             }
             
             ProgressView(value: value)
                 .tint(color)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color.opacity(0.1))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(color.opacity(0.3), lineWidth: 1)
-        )
+        .appCard(padding: 14)
     }
 }
 
@@ -258,29 +230,21 @@ struct StatisticRowView: View {
         HStack {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundColor(color)
+                .foregroundStyle(color)
                 .frame(width: 30)
             
             Text(title)
                 .font(.subheadline)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             
             Spacer()
             
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.05))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
+        .appCard(padding: 14)
     }
 }
 
@@ -297,34 +261,26 @@ struct CategoryHighlightCardView: View {
                 
                 Image(systemName: category.iconName)
                     .font(.system(size: 28))
-                    .foregroundColor(category.color)
+                    .foregroundStyle(category.color)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(category.name)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                 
                 Text("Categoría con más hábitos")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
             
             Image(systemName: "star.fill")
                 .font(.title2)
-                .foregroundColor(category.color)
+                .foregroundStyle(category.color)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(category.color.opacity(0.1))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(category.color.opacity(0.3), lineWidth: 1)
-        )
+        .appCard(padding: 14)
     }
 }
 
@@ -337,28 +293,20 @@ struct HabitHighlightCardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(habit.title)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                 
                 Text("\(habit.completionCount) completitudes")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
             
             Image(systemName: "medal.fill")
                 .font(.largeTitle)
-                .foregroundColor(.yellow)
+                .foregroundStyle(.yellow)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.yellow.opacity(0.1))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.yellow.opacity(0.3), lineWidth: 1)
-        )
+        .appCard(padding: 14)
     }
 }
 
@@ -383,27 +331,19 @@ struct CategoryStatisticRowView: View {
             HStack {
                 Text("\(statistic.totalCompletions) completitudes")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Spacer()
                 
                 Text("\(Int(statistic.averageCompletionRate * 100))% tasa")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             ProgressView(value: statistic.averageCompletionRate)
                 .tint(getCategoryColor(for: statistic.categoryId))
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.05))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
+        .appCard(padding: 14)
     }
     
     private func getCategoryColor(for categoryId: UUID) -> Color {
@@ -411,7 +351,5 @@ struct CategoryStatisticRowView: View {
     }
 }
 
-// MARK: - Preview
-#Preview {
-    StatisticsView()
+
 }

@@ -139,6 +139,7 @@ struct HabitApp: App {
                         Label("Ajustes", systemImage: "gearshape")
                     }
                 }
+                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
             } detail: {
                 let pluginNavViews = PluginRegistry.shared.getPluginMainNavigationViews()
                 
@@ -159,7 +160,10 @@ struct HabitApp: App {
                         }
                     }
                 }
-            }            .environmentObject(appConfig)
+            }
+            .navigationSplitViewStyle(.balanced)
+            .frame(minWidth: 900, minHeight: 600)
+            .environmentObject(appConfig)
 
             #endif
 
