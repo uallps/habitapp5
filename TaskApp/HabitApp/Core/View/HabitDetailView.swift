@@ -24,8 +24,13 @@ struct HabitDetailView: View {
             Form {
                 TextField("Título del hábito", text: $habit.title)
                 
-                // Sección de Categoría
-                Section(header: Text("Categoría")) {
+                // Categoría
+                Text("Categoría")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
+                
+                Section {
                     Button(action: {
                         showCategorySelection = true
                     }) {
@@ -58,7 +63,29 @@ struct HabitDetailView: View {
                     }
                 }
                 
-                Section(header: Text("Detalles del Hábito")) {
+                // Fechas de duración
+                Text("Fechas de duración")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
+                
+                Section {
+                    // Fecha de Inicio
+                    HStack {
+                        Text("Fecha de Inicio")
+                            .frame(width: 150, alignment: .leading)
+                        DatePicker(
+                            "",
+                            selection: Binding(
+                                get: { habit.fechaInicio ?? Date() },
+                                set: { habit.fechaInicio = $0 }
+                            ),
+                            displayedComponents: .date
+                        )
+                        .labelsHidden()
+                    }
+                    
+                    // Fecha de Vencimiento
                     if AppConfig.showDueDates {
                         Toggle(isOn: Binding(
                             get: { habit.fechaFin != nil },
@@ -72,13 +99,32 @@ struct HabitDetailView: View {
                         )) {
                             Text("Vencimiento")
                         }
+                        
                         if let dueDate = habit.fechaFin {
-                            DatePicker("Fecha de Vencimiento", selection: Binding(
-                                get: { dueDate },
-                                set: { habit.fechaFin = $0 }
-                            ), displayedComponents: .date)
+                            HStack {
+                                Text("Fecha de Vencimiento")
+                                    .frame(width: 150, alignment: .leading)
+                                DatePicker(
+                                    "",
+                                    selection: Binding(
+                                        get: { dueDate },
+                                        set: { habit.fechaFin = $0 }
+                                    ),
+                                    displayedComponents: .date
+                                )
+                                .labelsHidden()
+                            }
                         }
                     }
+                }
+                
+                // Detalles del Hábito
+                Text("Detalles del Hábito")
+                    .font(.headline)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
+                    .foregroundColor(.primary)
+                
+                Section {
                     if AppConfig.showPriorities {
                         Picker("Prioridad", selection: Binding(
                             get: { habit.prioridad },
@@ -94,8 +140,13 @@ struct HabitDetailView: View {
                     ReminderEditorView(reminderDate: $habit.reminderDate)
                 }
                 
-                // Sección de Frecuencia
-                Section(header: Text("Frecuencia")) {
+                // Frecuencia
+                Text("Frecuencia")
+                    .font(.headline)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
+                    .foregroundColor(.primary)
+                
+                Section {
                     VStack(alignment: .leading, spacing: 16) {
                         // Selector de tipo de frecuencia
                         Picker("Tipo de frecuencia", selection: Binding(

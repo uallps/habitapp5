@@ -98,6 +98,11 @@ struct HabitApp: App {
                         Label("Habitos", systemImage: "checklist")
                     }
                 
+                StatisticsView()
+                    .tabItem {
+                        Label("Estadísticas", systemImage: "chart.bar.fill")
+                    }
+                
                 // Vistas de navegación proporcionadas por los plugins
                 ForEach(PluginRegistry.shared.getPluginMainNavigationViews(), id: \.id) { nav in
                     nav.view
@@ -119,6 +124,10 @@ struct HabitApp: App {
                         Label("Habitos", systemImage: "checklist")
                     }
                     
+                    NavigationLink(value: "estadisticas") {
+                        Label("Estadísticas", systemImage: "chart.bar.fill")
+                    }
+                    
                     // Links de navegación proporcionados por los plugins
                     ForEach(PluginRegistry.shared.getPluginMainNavigationViews(), id: \.id) { nav in
                         NavigationLink(value: nav.id) {
@@ -133,17 +142,21 @@ struct HabitApp: App {
             } detail: {
                 let pluginNavViews = PluginRegistry.shared.getPluginMainNavigationViews()
                 
-                switch selectedDetailView {
-                case "habitos":
-                    HabitListView(storageProvider: storageProvider)
-                case "ajustes":
-                    SettingsView()
-                default:
-                    // Buscar si es una vista de plugin
-                    if let pluginNav = pluginNavViews.first(where: { $0.id == selectedDetailView }) {
-                        pluginNav.view
-                    } else {
-                        Text("Seleccione una opción")
+                NavigationStack {
+                    switch selectedDetailView {
+                    case "habitos":
+                        HabitListView(storageProvider: storageProvider)
+                    case "estadisticas":
+                        StatisticsView()
+                    case "ajustes":
+                        SettingsView()
+                    default:
+                        // Buscar si es una vista de plugin
+                        if let pluginNav = pluginNavViews.first(where: { $0.id == selectedDetailView }) {
+                            pluginNav.view
+                        } else {
+                            Text("Seleccione una opción")
+                        }
                     }
                 }
             }            .environmentObject(appConfig)
