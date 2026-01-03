@@ -208,23 +208,29 @@ struct HabitDetailView: View {
                 
                 // Sección de Racha
                 Section(header: AppSectionHeader(title: "Racha")) {
-                    StreakSectionView(habit: habit)
+                    StreakSectionView(habit: $habit)
+                    
+                    // TEMPORAL: Helper para probar rachas
+                    // Comentar o eliminar esta línea cuando no hagamos debug de rachas
+                    StreakTestHelper(habit: $habit)
                 }
                 
                 // Sección dinámica de plugins
                 // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
-                ForEach(pluginDetailViews.indices, id: \.self) { index in
-                    Section {
-                        #if os(macOS)
-                        HStack(spacing: 0) {
+                if !pluginDetailViews.isEmpty {
+                    ForEach(pluginDetailViews.indices, id: \.self) { index in
+                        Section {
+                            #if os(macOS)
+                            HStack(spacing: 0) {
+                                pluginDetailViews[index]
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Spacer(minLength: 0)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            #else
                             pluginDetailViews[index]
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Spacer(minLength: 0)
+                            #endif
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        #else
-                        pluginDetailViews[index]
-                        #endif
                     }
                 }
         }
