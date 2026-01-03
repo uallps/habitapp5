@@ -34,12 +34,16 @@ struct StreakSectionView: View {
                 .font(.system(size: 40))
                 .foregroundStyle(
                     streakData.currentStreak > 0 ?
-                        .linearGradient(
+                        LinearGradient(
                             colors: [.orange, .red],
                             startPoint: .top,
                             endPoint: .bottom
                         ) :
-                        .gray
+                        LinearGradient(
+                            colors: [.gray, .gray],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                 )
             
             // Texto de racha
