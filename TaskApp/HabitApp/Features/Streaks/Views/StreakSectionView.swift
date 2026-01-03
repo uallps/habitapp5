@@ -168,7 +168,7 @@ private struct StatItem: View {
         ]
     )
     
-    return StreakSectionView(habit: $habit)
+    StreakSectionView(habit: $habit)
         .padding()
 }
 
@@ -184,30 +184,31 @@ private struct StatItem: View {
         fechaCompletitud: []
     )
     
-    return StreakSectionView(habit: $habit)
+    StreakSectionView(habit: $habit)
         .padding()
 }
 
 #Preview("Completado HOY") {
-    let calendar = Calendar.current
-    let today = Date()
+    @Previewable @State var habit: Habito = {
+        let calendar = Calendar.current
+        let today = Date()
+        return Habito(
+            title: "Lectura",
+            descripcion: "Leer 30 minutos",
+            fechaInicio: calendar.date(byAdding: .day, value: -10, to: today),
+            tipoFrecuencia: .semanal,
+            vecesPorPeriodo: 7,
+            diasSemana: [1, 2, 3, 4, 5, 6, 7], // Todos los días
+            diasMes: [],
+            fechaCompletitud: [
+                // Completado hoy y los últimos 2 días
+                calendar.startOfDay(for: today), // HOY
+                calendar.date(byAdding: .day, value: -1, to: today)!, // Ayer
+                calendar.date(byAdding: .day, value: -2, to: today)!, // Anteayer
+            ]
+        )
+    }()
     
-    @Previewable @State var habit = Habito(
-        title: "Lectura",
-        descripcion: "Leer 30 minutos",
-        fechaInicio: calendar.date(byAdding: .day, value: -10, to: today),
-        tipoFrecuencia: .semanal,
-        vecesPorPeriodo: 7,
-        diasSemana: [1, 2, 3, 4, 5, 6, 7], // Todos los días
-        diasMes: [],
-        fechaCompletitud: [
-            // Completado hoy y los últimos 2 días
-            calendar.startOfDay(for: today), // HOY
-            calendar.date(byAdding: .day, value: -1, to: today)!, // Ayer
-            calendar.date(byAdding: .day, value: -2, to: today)!, // Anteayer
-        ]
-    )
-    
-    return StreakSectionView(habit: $habit)
+    StreakSectionView(habit: $habit)
         .padding()
 }
