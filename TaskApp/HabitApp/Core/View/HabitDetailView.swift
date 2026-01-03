@@ -206,6 +206,11 @@ struct HabitDetailView: View {
                     }
                 }
                 
+                // Sección de Racha
+                Section(header: AppSectionHeader(title: "Racha")) {
+                    StreakSectionView(habit: habit)
+                }
+                
                 // Sección dinámica de plugins
                 // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
                 ForEach(pluginDetailViews.indices, id: \.self) { index in
