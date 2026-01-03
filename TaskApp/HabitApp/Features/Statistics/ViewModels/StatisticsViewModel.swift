@@ -15,8 +15,11 @@ class StatisticsViewModel: ObservableObject {
     @Published var periodStatistics: [PeriodStatistics] = []
     @Published var categoryStatistics: [CategoryStatistics] = []
     @Published var isLoading: Bool = false
+    @Published var weekCompletions: [CompletionDetail] = []
+    @Published var monthCompletions: [CompletionDetail] = []
     
     private let storageProvider: StorageProvider
+    private var allHabits: [Habito] = []
     
     init(storageProvider: StorageProvider = SwiftDataStorageProvider()) {
         self.storageProvider = storageProvider
@@ -29,10 +32,54 @@ class StatisticsViewModel: ObservableObject {
         
         do {
             let habits = try await storageProvider.loadHabits()
+            allHabits = habits
             calculateStatistics(from: habits)
+            calculateDetailedCompletions(from: habits)
         } catch {
             print("[ERROR] Failed to load statistics: \(error)")
         }
+    }
+    
+    /// Calcula las completitudes detalladas por período
+    private func calculateDetailedCompletions(from habits: [Habito]) {
+        let now = Date()
+        let calendar = Calendar.current
+        
+        // Completitudes última semana
+        let oneWeekAgo = calendar.date(byAdding: .day, value: -7, to: now)!
+        var weekDetails: [CompletionDetail] = []
+        
+        for habit in habits {
+            let weekCompletionDates = habit.fechaCompletitud.filter { $0 >= oneWeekAgo && $0 <= now }
+            for date in weekCompletionDates {
+                weekDetails.append(CompletionDetail(
+                    habitTitle: habit.title,
+                    habitId: habit.id,
+                    completionDate: date,
+                    category: habit.categoria
+                ))
+            }
+        }
+        
+        // Completitudes este mes
+        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
+        var monthDetails: [CompletionDetail] = []
+        
+        for habit in habits {
+            let monthCompletionDates = habit.fechaCompletitud.filter { $0 >= startOfMonth && $0 <= now }
+            for date in monthCompletionDates {
+                monthDetails.append(CompletionDetail(
+                    habitTitle: habit.title,
+                    habitId: habit.id,
+                    completionDate: date,
+                    category: habit.categoria
+                ))
+            }
+        }
+        
+        // Ordenar por fecha descendente (más recientes primero)
+        self.weekCompletions = weekDetails.sorted { $0.completionDate > $1.completionDate }
+        self.monthCompletions = monthDetails.sorted { $0.completionDate > $1.completionDate }
     }
     
     /// Calcula las estadísticas
@@ -41,10 +88,16 @@ class StatisticsViewModel: ObservableObject {
         let calendar = Calendar.current
         let totalHabits = habits.count
         // Hábitos activos (sin fecha fin o fecha fin futura)
-        let activeHabits = habits.filter { habit in
-            guard let endDate = habit.fechaFin else { return true }
-            return endDate >= now
-        }.count
+        let activeHabitsList = habits.filter { habit in
+            guard let fechaFin = habit.fechaFin else { return true }
+            return fechaFin > now
+        }
+        let activeHabits = activeHabitsList.count
+        
+        // Contar hábitos activos por prioridad
+        let highPriority = activeHabitsList.filter { $0.prioridad == .high }.count
+        let mediumPriority = activeHabitsList.filter { $0.prioridad == .medium }.count
+        let lowPriority = activeHabitsList.filter { $0.prioridad == .low }.count
         
         // Completitudes de hoy
         let startOfToday = calendar.startOfDay(for: now)
@@ -81,7 +134,8 @@ class StatisticsViewModel: ObservableObject {
             completionsLastWeek: completionsLastWeek,
             completionsThisMonth: completionsThisMonth,
             mostCompletedHabit: mostCompletedHabit,
-            mostActiveCategory: mostActiveCategory
+            mostActiveCategory: mostActiveCategory,
+            activeByPriority: (high: highPriority, medium: mediumPriority, low: lowPriority)
         )
         
         // Calcular estadísticas por período

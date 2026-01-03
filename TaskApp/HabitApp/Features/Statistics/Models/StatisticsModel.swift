@@ -15,12 +15,22 @@ struct StatisticsModel {
     let completionsThisMonth: Int
     let mostCompletedHabit: HabitSummary?
     let mostActiveCategory: UUID?
+    let activeByPriority: (high: Int, medium: Int, low: Int)
 }
 
 struct HabitSummary {
     let id: UUID
     let title: String
     let completionCount: Int
+    let category: UUID?
+}
+
+/// Detalle de una completitud individual
+struct CompletionDetail: Identifiable {
+    let id = UUID()
+    let habitTitle: String
+    let habitId: UUID
+    let completionDate: Date
     let category: UUID?
 }
 

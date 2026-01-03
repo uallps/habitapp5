@@ -9,6 +9,8 @@ internal import SwiftUI
 
 struct StatisticsView: View {
     @StateObject private var viewModel = StatisticsViewModel()
+    @State private var showWeekDetails = false
+    @State private var showMonthDetails = false
     
     var body: some View {
         ScrollView {
@@ -45,34 +47,11 @@ struct StatisticsView: View {
                                     icon: "star.fill",
                                     color: .orange
                                 )
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        // Sección: Rendimiento
-                        VStack(alignment: .leading, spacing: 12) {
-                            SectionHeaderView(title: "Rendimiento")
-                            
-                            VStack(spacing: 12) {
-                                ProgressStatisticCardView(
-                                    title: "Tasa de Completitud",
-                                    value: stats.averageCompletionRate,
-                                    icon: "chart.line.uptrend.xyaxis",
-                                    color: .purple
-                                )
                                 
-                                StatisticRowView(
-                                    title: "Última Semana",
-                                    value: "\(stats.completionsLastWeek) completitudes",
-                                    icon: "calendar",
-                                    color: .teal
-                                )
-                                
-                                StatisticRowView(
-                                    title: "Este Mes",
-                                    value: "\(stats.completionsThisMonth) completitudes",
-                                    icon: "calendar.badge.clock",
-                                    color: .indigo
+                                PriorityCardView(
+                                    high: stats.activeByPriority.high,
+                                    medium: stats.activeByPriority.medium,
+                                    low: stats.activeByPriority.low
                                 )
                             }
                         }
@@ -87,6 +66,55 @@ struct StatisticsView: View {
                             }
                             .padding(.horizontal)
                         }
+                        
+                        // Sección: Rendimiento
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeaderView(title: "Rendimiento")
+                            
+                            VStack(spacing: 12) {
+                                ProgressStatisticCardView(
+                                    title: "Tasa de Completitud",
+                                    value: stats.averageCompletionRate,
+                                    icon: "chart.line.uptrend.xyaxis",
+                                    color: .purple
+                                )
+                                
+                                Button(action: {
+                                    showWeekDetails.toggle()
+                                }) {
+                                    StatisticRowView(
+                                        title: "Última Semana",
+                                        value: "\(stats.completionsLastWeek) completitudes",
+                                        icon: "calendar",
+                                        color: .teal,
+                                        showChevron: true
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                
+                                if showWeekDetails {
+                                    CompletionDetailsView(completions: viewModel.weekCompletions)
+                                }
+                                
+                                Button(action: {
+                                    showMonthDetails.toggle()
+                                }) {
+                                    StatisticRowView(
+                                        title: "Este Mes",
+                                        value: "\(stats.completionsThisMonth) completitudes",
+                                        icon: "calendar.badge.clock",
+                                        color: .indigo,
+                                        showChevron: true
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                
+                                if showMonthDetails {
+                                    CompletionDetailsView(completions: viewModel.monthCompletions)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
                         
                         // Sección: Categoría Más Activa
                         if let categoryId = stats.mostActiveCategory,
@@ -129,20 +157,10 @@ struct StatisticsView: View {
         .toolbarBackground(AppStyle.screenBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         #endif
-        .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        Task {
-                            await viewModel.loadStatistics()
-                        }
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadStatistics()
-            }
+        .task {
+            await viewModel.loadStatistics()
+        }
+    }
 }
 
 // MARK: - Section Header
@@ -225,6 +243,7 @@ struct StatisticRowView: View {
     let value: String
     let icon: String
     let color: Color
+    var showChevron: Bool = false
     
     var body: some View {
         HStack {
@@ -243,6 +262,12 @@ struct StatisticRowView: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
+            
+            if showChevron {
+                Image(systemName: "chevron.down")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .appCard(padding: 14)
     }
@@ -351,5 +376,119 @@ struct CategoryStatisticRowView: View {
     }
 }
 
+// MARK: - Completion Details View
+struct CompletionDetailsView: View {
+    let completions: [CompletionDetail]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if completions.isEmpty {
+                Text("No hay completitudes en este período")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                ForEach(completions) { completion in
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.caption)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(completion.habitTitle)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                            
+                            Text(completion.completionDate.formatted(date: .abbreviated, time: .omitted))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(nombreDiaSemana(completion.completionDate))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                    
+                    if completion.id != completions.last?.id {
+                        Divider()
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.03))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
+    }
+    
+    private func nombreDiaSemana(_ fecha: Date) -> String {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: fecha)
+        return DiaSemana(rawValue: weekday)?.nombre ?? ""
+    }
+}
 
+// MARK: - Priority Card View
+struct PriorityCardView: View {
+    let high: Int
+    let medium: Int
+    let low: Int
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "flag.fill")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+
+            HStack(alignment: .top, spacing: 12) {
+                priorityItem(title: "Alta", value: high, color: priorityColorHigh)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                priorityItem(title: "Media", value: medium, color: priorityColorMedium)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                priorityItem(title: "Baja", value: low, color: priorityColorLow)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Text("Hábitos Activos Por Prioridad")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .appCard(padding: 14)
+    }
+
+    private func priorityItem(title: String, value: Int, color: Color) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 3) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+            Text("\(value)")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundStyle(.primary)
+                .padding(.leading, 8)
+        }
+    }
+
+    private var priorityColorLow: Color { .green }
+    private var priorityColorMedium: Color { .yellow }
+    private var priorityColorHigh: Color { .red }
 }
