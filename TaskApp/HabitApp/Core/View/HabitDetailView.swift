@@ -1,10 +1,6 @@
 import SwiftUI
 
 struct HabitDetailView: View {
-    private enum Layout {
-        static let constrainedWidth: CGFloat = 560
-    }
-
     private var formView: some View {
         let pluginDetailViews = PluginRegistry.shared.getHabitoDetailViews(for: $habit)
 
@@ -13,9 +9,6 @@ struct HabitDetailView: View {
                 TextField("Título del hábito", text: $habit.title)
                     #if os(iOS)
                     .textInputAutocapitalization(.sentences)
-                    #endif
-                    #if os(macOS)
-                    .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
                     #endif
             }
 
@@ -42,7 +35,7 @@ struct HabitDetailView: View {
                     }
                 }
                 #if os(macOS)
-                .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 #endif
 
                 if selectedCategoryModel != nil {
@@ -53,7 +46,7 @@ struct HabitDetailView: View {
                         Text("Quitar categoría")
                     }
                     #if os(macOS)
-                    .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     #endif
                 }
             }
@@ -220,7 +213,7 @@ struct HabitDetailView: View {
                         #if os(macOS)
                         HStack(spacing: 0) {
                             pluginDetailViews[index]
-                                .frame(maxWidth: 560, alignment: .leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -254,18 +247,14 @@ struct HabitDetailView: View {
     private var baseView: some View {
         #if os(macOS)
         ScrollView {
-            HStack(spacing: 0) {
-                formView
-                    // Help the ScrollView compute a real content height.
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.leading, 16)
-            .padding(.vertical, 8)
+            formView
+                // Help the ScrollView compute a real content height.
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
         #else
         formView
         #endif

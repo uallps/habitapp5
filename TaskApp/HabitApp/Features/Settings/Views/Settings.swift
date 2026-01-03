@@ -8,10 +8,14 @@ import SwiftUI
 
 
 struct SettingsView: View {
+    private enum Layout {
+        static let maxContentWidth: CGFloat = 560
+    }
+
     @EnvironmentObject private var appConfig: AppConfig
     @ObservedObject private var pluginRegistry = PluginRegistry.shared
 
-    var body: some View {
+    private var settingsForm: some View {
         Form {
             Section(header: Text("General")) {
                 Toggle("Show Due Dates", isOn: $appConfig.showDueDates)
@@ -23,7 +27,7 @@ struct SettingsView: View {
                     }
                 }
             }
-            
+
             // Sección dinámica de plugins
             // Muestra configuración de plugins instalados (si existen)
             let pluginViews = pluginRegistry.getPluginSettingsViews()
@@ -33,7 +37,7 @@ struct SettingsView: View {
                         #if os(macOS)
                         HStack(spacing: 0) {
                             pluginViews[index]
-                                .frame(maxWidth: 560, alignment: .leading)
+                                .frame(maxWidth: Layout.maxContentWidth, alignment: .leading)
                             Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -44,6 +48,21 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    var body: some View {
+        Group {
+            #if os(macOS)
+            HStack(spacing: 0) {
+                Spacer(minLength: 0)
+                settingsForm
+                    .frame(maxWidth: Layout.maxContentWidth, alignment: .leading)
+                Spacer(minLength: 0)
+            }
+            #else
+            settingsForm
+            #endif
         }
         .appFormContainer()
         .navigationTitle("Ajustes")
