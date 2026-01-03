@@ -253,11 +253,19 @@ struct HabitDetailView: View {
 
     private var baseView: some View {
         #if os(macOS)
-        HStack(spacing: 0) {
-            formView
-                .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
-            Spacer(minLength: 0)
+        ScrollView {
+            HStack(spacing: 0) {
+                formView
+                    // Help the ScrollView compute a real content height.
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 16)
+            .padding(.vertical, 8)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         #else
         formView
         #endif
