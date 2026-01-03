@@ -130,12 +130,23 @@ struct StreakTestHelper: View {
                     Text("Días configurados: \(dias)")
                         .font(.caption2)
                         .foregroundColor(.secondary)
+                    
+                    // DEBUG: Mostrar los valores raw
+                    Text("Raw values: \(habit.diasSemana.map { String($0) }.joined(separator: ", "))")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
                 } else {
                     let dias = habit.diasMes.map { String($0) }.joined(separator: ", ")
                     Text("Días del mes: \(dias)")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                
+                // DEBUG: Día de la semana de hoy
+                let todayWeekday = Calendar.current.component(.weekday, from: Date())
+                Text("Hoy es día #\(todayWeekday) de la semana")
+                    .font(.caption2)
+                    .foregroundColor(.orange)
             }
             
             // Lista de fechas completadas (últimas 5)

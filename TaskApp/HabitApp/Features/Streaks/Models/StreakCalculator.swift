@@ -51,22 +51,33 @@ struct StreakCalculator {
         var currentStreak = 0
         var longestStreak = 0
         var tempStreak = 0
+        var brokeCurrentStreak = false // Bandera para detectar cuándo se rompe la racha actual
+        
+        // DEBUG: Imprimir fechas esperadas
+        print("🔍 [StreakCalculator] Fechas esperadas (total: \(expectedDates.count)):")
+        for date in expectedDates.reversed().prefix(10) {
+            let completed = habit.estaCompletado(en: date) ? "✅" : "❌"
+            print("  \(completed) \(date.formatted(date: .abbreviated, time: .omitted))")
+        }
         
         // Recorrer fechas esperadas en orden descendente (más reciente primero)
         for expectedDate in expectedDates.reversed() {
             let isCompleted = habit.estaCompletado(en: expectedDate)
             
             if isCompleted {
-                // Fecha completada: incrementar rachas
-                currentStreak += 1
+                // Fecha completada: incrementar tempStreak siempre
                 tempStreak += 1
+                
+                // Solo incrementar currentStreak si la racha actual NO se ha roto
+                if !brokeCurrentStreak {
+                    currentStreak += 1
+                }
             } else {
                 // Fecha NO completada
-                // Si es hoy o futuro, no rompe la racha (aún puede completarse)
-                // Si es pasado, rompe la racha actual
+                // Si es una fecha pasada (no hoy), rompe la racha actual
                 if expectedDate < today {
-                    // Ya pasó y no se completó -> romper racha actual
-                    currentStreak = 0
+                    // Ya pasó y no se completó -> marcar racha actual como rota
+                    brokeCurrentStreak = true
                 }
                 // La racha temporal se resetea siempre que no está completado
                 tempStreak = 0
@@ -75,6 +86,9 @@ struct StreakCalculator {
             // Actualizar mejor racha
             longestStreak = max(longestStreak, tempStreak)
         }
+        
+        // DEBUG: Imprimir resultado
+        print("🔥 [StreakCalculator] Resultado: current=\(currentStreak), longest=\(longestStreak)")
         
         // 3. Obtener la última fecha de completitud
         let lastCompletion = habit.fechaCompletitud.max()
