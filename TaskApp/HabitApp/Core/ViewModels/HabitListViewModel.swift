@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-internal import SwiftUI
+import SwiftUI
 
 @MainActor
 class HabitListViewModel: ObservableObject{

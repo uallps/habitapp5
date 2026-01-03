@@ -4,7 +4,7 @@
 //
 //  Vista de detalle/edición de una rutina
 //
-internal import SwiftUI
+import SwiftUI
 
 struct RutinaDetailView: View {
     private enum Layout {

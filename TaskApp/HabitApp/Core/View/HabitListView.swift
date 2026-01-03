@@ -6,7 +6,7 @@
 //
 
 import Foundation
-internal import SwiftUI
+import SwiftUI
 
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
@@ -17,46 +17,54 @@ struct HabitListView: View {
     }
     
     var body: some View {
+        #if os(iOS)
         NavigationStack {
-            List {
-                ForEach($viewModel.habitos) { $habit in
-                    habitRow(habit: habit)
+            content
+        }
+        #else
+        content
+        #endif
+    }
+
+    private var content: some View {
+        List {
+            ForEach($viewModel.habitos) { $habit in
+                habitRow(habit: habit)
+            }
+            .onDelete { indexSet in
+                _Concurrency.Task {
+                    await viewModel.removeHabits(atOffsets: indexSet)
                 }
-                .onDelete { indexSet in
-                    _Concurrency.Task {
-                        await viewModel.removeHabits(atOffsets: indexSet)
+            }
+        }
+        .appListContainer()
+        .navigationTitle("Hábitos")
+        .navigationDestination(isPresented: Binding(
+            get: { selectedHabitID != nil },
+            set: { isPresented in
+                if !isPresented { selectedHabitID = nil }
+            }
+        )) {
+            if let id = selectedHabitID {
+                HabitDetailView(
+                    habit: binding(forHabitId: id),
+                    onSave: {
+                        saveHabits()
                     }
+                )
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    addNewHabit()
+                } label: {
+                    Label("Añadir", systemImage: "plus")
                 }
             }
-            .appListContainer()
-            .navigationTitle("Hábitos")
-            .navigationDestination(isPresented: Binding(
-                get: { selectedHabitID != nil },
-                set: { isPresented in
-                    if !isPresented { selectedHabitID = nil }
-                }
-            )) {
-                if let id = selectedHabitID {
-                    HabitDetailView(
-                        habit: binding(forHabitId: id),
-                        onSave: {
-                            saveHabits()
-                        }
-                    )
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        addNewHabit()
-                    } label: {
-                        Label("Añadir", systemImage: "plus")
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadHabits()
-            }
+        }
+        .task {
+            await viewModel.loadHabits()
         }
     }
     

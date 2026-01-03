@@ -1,4 +1,4 @@
-internal import SwiftUI
+import SwiftUI
 import Combine
 
 struct ReminderEditorView: View {
@@ -24,10 +24,20 @@ struct ReminderEditorView: View {
                     Text("Recordatorio")
                 }
                 if viewModel.reminderDate != nil {
+                    #if os(macOS)
+                    LabeledContent("Fecha") {
+                        DatePicker("", selection: Binding(
+                            get: { viewModel.reminderDate ?? Date() },
+                            set: { viewModel.reminderDate = $0 }
+                        ), displayedComponents: [.date, .hourAndMinute])
+                        .labelsHidden()
+                    }
+                    #else
                     DatePicker("Fecha de Recordatorio", selection: Binding(
                         get: { viewModel.reminderDate ?? Date() },
                         set: { viewModel.reminderDate = $0 }
                     ), displayedComponents: [.date, .hourAndMinute])
+                    #endif
                 }
             }
         }

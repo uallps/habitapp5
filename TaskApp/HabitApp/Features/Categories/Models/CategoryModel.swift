@@ -6,7 +6,7 @@
 //
 
 import Foundation
-internal import SwiftUI
+import SwiftUI
 
 /// Modelo de categoría para hábitos
 struct CategoryModel: Identifiable, Codable, Hashable {

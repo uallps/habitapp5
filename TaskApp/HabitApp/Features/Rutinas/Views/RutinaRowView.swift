@@ -4,7 +4,7 @@
 //
 //  Vista de fila para una rutina
 //
-internal import SwiftUI
+import SwiftUI
 
 struct RutinaRowView: View {
     let rutina: Rutina

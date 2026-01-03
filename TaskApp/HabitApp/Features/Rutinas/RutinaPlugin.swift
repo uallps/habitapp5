@@ -5,7 +5,7 @@
 //  Plugin completamente desacoplado para gestión de rutinas
 //
 import Foundation
-internal import SwiftUI
+import SwiftUI
 import SwiftData
 
 final class RutinaPlugin: ViewPlugin, DataPlugin {

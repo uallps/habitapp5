@@ -4,7 +4,7 @@
 //
 //  Vista principal para gestionar rutinas
 //
-internal import SwiftUI
+import SwiftUI
 
 struct RutinaListView: View {
     @ObservedObject private var config: AppConfig

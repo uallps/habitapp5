@@ -3,7 +3,7 @@
 //  HabitApp
 //
 import Foundation
-internal import SwiftUI
+import SwiftUI
 
 /// Protocol para plugins que proveen vistas en diferentes puntos de la aplicación
 protocol ViewPlugin: FeaturePlugin {

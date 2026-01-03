@@ -5,7 +5,7 @@
 //  Created on 18/11/25.
 //
 
-internal import SwiftUI
+import SwiftUI
 
 /// Vista para seleccionar una categoría
 struct CategorySelectionView: View {

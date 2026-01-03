@@ -1,29 +1,14 @@
-internal import SwiftUI
+import SwiftUI
 
 struct HabitDetailView: View {
     private enum Layout {
         static let constrainedWidth: CGFloat = 560
     }
 
-    @Binding var habit: Habito
-    var onSave: (() -> Void)?
-    @Environment(\.dismiss) private var dismiss
+    private var formView: some View {
+        let pluginDetailViews = PluginRegistry.shared.getHabitoDetailViews(for: $habit)
 
-    @EnvironmentObject private var AppConfig: AppConfig
-    @State private var showCategorySelection = false
-    @State private var selectedCategoryModel: CategoryModel?
-    @State private var pendingSaveTask: Task<Void, Never>?
-
-    private func scheduleSave() {
-        pendingSaveTask?.cancel()
-        pendingSaveTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            onSave?()
-        }
-    }
-    
-    var body: some View {
-        Form {
+        return Form {
             Section {
                 TextField("Título del hábito", text: $habit.title)
                     #if os(iOS)
@@ -164,7 +149,7 @@ struct HabitDetailView: View {
                                 }
                             ),
                                    in: 1...(habit.tipoFrecuenciaActual == .semanal ? 7 : 31)) {
-                                Text("\(habit.vecesPorPeriodoActual) \(habit.vecesPorPeriodoActual == 1 ? "vez" : "veces")")
+                                          Text("\(habit.vecesPorPeriodoActual) \(habit.vecesPorPeriodoActual == 1 ? "vez" : "veces")")
                             }
 
                             // Advertencia si hay días seleccionados que impiden reducir el número
@@ -230,58 +215,105 @@ struct HabitDetailView: View {
                 
                 // Sección dinámica de plugins
                 // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
-                ForEach(0..<PluginRegistry.shared.getHabitoDetailViews(for: $habit).count, id: \.self) { index in
+                ForEach(pluginDetailViews.indices, id: \.self) { index in
                     Section {
                         #if os(macOS)
                         HStack(spacing: 0) {
-                            PluginRegistry.shared.getHabitoDetailViews(for: $habit)[index]
+                            pluginDetailViews[index]
                                 .frame(maxWidth: 560, alignment: .leading)
                             Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         #else
-                        PluginRegistry.shared.getHabitoDetailViews(for: $habit)[index]
+                        pluginDetailViews[index]
                         #endif
                     }
                 }
         }
-        .appFormContainer()
-        .navigationTitle($habit.title)
-        .onDisappear {
+    }
+
+    @Binding var habit: Habito
+    var onSave: (() -> Void)?
+    @Environment(\.dismiss) private var dismiss
+
+    @EnvironmentObject private var AppConfig: AppConfig
+    @State private var showCategorySelection = false
+    @State private var selectedCategoryModel: CategoryModel?
+    @State private var pendingSaveTask: Task<Void, Never>?
+
+    private func scheduleSave() {
+        pendingSaveTask?.cancel()
+        pendingSaveTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             onSave?()
         }
-        .onAppear {
-            // Inicializar valores por defecto si son nil (migración de datos existentes)
-            if habit.tipoFrecuencia == nil {
-                habit.tipoFrecuencia = .semanal
-            }
-            if habit.vecesPorPeriodo == nil {
-                habit.vecesPorPeriodo = 1
-            }
-            
-            // Cargar la categoría seleccionada si existe
-            if let categoryId = habit.categoria {
-                selectedCategoryModel = CategoryModel.allCategories.first { $0.id == categoryId }
-            }
+    }
+    
+    var body: some View { finalView }
+
+    private var baseView: some View {
+        #if os(macOS)
+        HStack(spacing: 0) {
+            formView
+                .frame(maxWidth: Layout.constrainedWidth, alignment: .leading)
+            Spacer(minLength: 0)
         }
-        .onChange(of: habit.title) { _, _ in scheduleSave() }
-        .onChange(of: habit.descripcion) { _, _ in scheduleSave() }
-        .onChange(of: habit.fechaFin) { _, _ in scheduleSave() }
-        .onChange(of: habit.prioridad) { _, _ in scheduleSave() }
-        .onChange(of: habit.reminderDate) { _, _ in scheduleSave() }
-        .onChange(of: habit.categoria) { _, _ in scheduleSave() }
-        .onChange(of: habit.tipoFrecuencia) { _, _ in scheduleSave() }
-        .onChange(of: habit.vecesPorPeriodo) { _, _ in scheduleSave() }
-        .onChange(of: habit.diasSemana) { _, _ in scheduleSave() }
-        .onChange(of: habit.diasMes) { _, _ in scheduleSave() }
-        .onChange(of: selectedCategoryModel) { _, newValue in
-            habit.categoria = newValue?.id
-        }
-        .sheet(isPresented: $showCategorySelection) {
-            NavigationStack {
-                CategorySelectionView(selectedCategory: $selectedCategoryModel)
+        #else
+        formView
+        #endif
+    }
+
+    private var titledView: some View {
+        baseView
+            .appFormContainer()
+            .navigationTitle(habit.title)
+    }
+
+    private var lifecycleView: some View {
+        titledView
+            .onAppear {
+                // Inicializar valores por defecto si son nil (migración de datos existentes)
+                if habit.tipoFrecuencia == nil {
+                    habit.tipoFrecuencia = .semanal
+                }
+                if habit.vecesPorPeriodo == nil {
+                    habit.vecesPorPeriodo = 1
+                }
+
+                // Cargar la categoría seleccionada si existe
+                if let categoryId = habit.categoria {
+                    selectedCategoryModel = CategoryModel.allCategories.first { $0.id == categoryId }
+                }
             }
-        }
+            .onDisappear {
+                onSave?()
+            }
+    }
+
+    private var autosaveView: some View {
+        lifecycleView
+            .onChange(of: habit.title) { _, _ in scheduleSave() }
+            .onChange(of: habit.descripcion) { _, _ in scheduleSave() }
+            .onChange(of: habit.fechaFin) { _, _ in scheduleSave() }
+            .onChange(of: habit.prioridad) { _, _ in scheduleSave() }
+            .onChange(of: habit.reminderDate) { _, _ in scheduleSave() }
+            .onChange(of: habit.categoria) { _, _ in scheduleSave() }
+            .onChange(of: habit.tipoFrecuencia) { _, _ in scheduleSave() }
+            .onChange(of: habit.vecesPorPeriodo) { _, _ in scheduleSave() }
+            .onChange(of: habit.diasSemana) { _, _ in scheduleSave() }
+            .onChange(of: habit.diasMes) { _, _ in scheduleSave() }
+            .onChange(of: selectedCategoryModel) { _, newValue in
+                habit.categoria = newValue?.id
+            }
+    }
+
+    private var finalView: some View {
+        autosaveView
+            .sheet(isPresented: $showCategorySelection) {
+                NavigationStack {
+                    CategorySelectionView(selectedCategory: $selectedCategoryModel)
+                }
+            }
     }
     
     // MARK: - Helper Methods

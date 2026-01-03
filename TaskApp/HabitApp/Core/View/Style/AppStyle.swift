@@ -1,4 +1,4 @@
-internal import SwiftUI
+import SwiftUI
 
 /// Minimal + typographic styling helpers (Option B).
 enum AppStyle {

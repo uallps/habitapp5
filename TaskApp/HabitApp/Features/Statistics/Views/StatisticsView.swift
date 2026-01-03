@@ -5,7 +5,7 @@
 //  Created on 02/01/26.
 //
 
-internal import SwiftUI
+import SwiftUI
 
 struct StatisticsView: View {
     @StateObject private var viewModel = StatisticsViewModel()

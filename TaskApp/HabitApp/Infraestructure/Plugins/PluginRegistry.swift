@@ -5,7 +5,7 @@
 import Foundation
 import SwiftData
 import Combine
-internal import SwiftUI
+import SwiftUI
 
 /// Registro centralizado de plugins de características
 // Necesito que sea ObservableObject para que pueda notificar cambios en la UI y refrescar la pagina de ajustes.
