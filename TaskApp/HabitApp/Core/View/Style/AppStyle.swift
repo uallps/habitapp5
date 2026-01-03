@@ -104,3 +104,17 @@ extension View {
             .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 2, trailing: 0))
     }
 }
+
+struct AppCardPressedHighlightStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .overlay(
+                RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius, style: .continuous)
+                    .fill(Color.accentColor.opacity(configuration.isPressed ? 0.14 : 0))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius, style: .continuous)
+                    .stroke(Color.accentColor.opacity(configuration.isPressed ? 0.55 : 0), lineWidth: 1)
+            )
+    }
+}

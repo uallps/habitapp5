@@ -10,6 +10,7 @@ internal import SwiftUI
 
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
+    @State private var selectedHabitID: UUID?
 
     init(storageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
@@ -29,6 +30,21 @@ struct HabitListView: View {
             }
             .appListContainer()
             .navigationTitle("Hábitos")
+            .navigationDestination(isPresented: Binding(
+                get: { selectedHabitID != nil },
+                set: { isPresented in
+                    if !isPresented { selectedHabitID = nil }
+                }
+            )) {
+                if let id = selectedHabitID {
+                    HabitDetailView(
+                        habit: binding(forHabitId: id),
+                        onSave: {
+                            saveHabits()
+                        }
+                    )
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -46,31 +62,63 @@ struct HabitListView: View {
     
     @ViewBuilder
     private func habitRow(habit: Habito) -> some View {
-        NavigationLink(destination: HabitDetailView(
-            habit: binding(for: habit),
-            onSave: {
-                saveHabits()
-            }
-        )) {
+        Button {
+            selectedHabitID = habit.id
+        } label: {
             HabitRowView(habit: habit, toggleCompletion: {
                 _Concurrency.Task {
                     await viewModel.toggleCompletion(task: habit)
                 }
             })
             .appCard(padding: 14)
+            .overlay(alignment: .bottomTrailing) {
+                statusBadge(for: habit)
+                    .padding(10)
+            }
             .contentShape(Rectangle())
-            .contextMenu {
-                Button("Eliminar hábito") {
-                    deleteHabit(habit)
-                }
+        }
+        .buttonStyle(AppCardPressedHighlightStyle())
+        .contextMenu {
+            Button("Eliminar hábito") {
+                deleteHabit(habit)
             }
         }
-        .buttonStyle(.plain)
         .appListRowCard()
+    }
+
+    @ViewBuilder
+    private func statusBadge(for habit: Habito) -> some View {
+        let now = Date()
+        if let dueDate = habit.fechaFin, dueDate <= now {
+            Text("Vencido: \(dueDate.formatted(date: .abbreviated, time: .omitted))")
+                .font(.caption2.weight(.semibold))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.red.opacity(0.18))
+                .foregroundStyle(.red)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .allowsHitTesting(false)
+        } else {
+            Text("Activo")
+                .font(.caption2.weight(.semibold))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.green.opacity(0.18))
+                .foregroundStyle(.green)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .allowsHitTesting(false)
+        }
     }
     
     private func binding(for habit: Habito) -> Binding<Habito> {
         guard let index = viewModel.habitos.firstIndex(where: { $0.id == habit.id }) else {
+            fatalError("Habit not found")
+        }
+        return $viewModel.habitos[index]
+    }
+
+    private func binding(forHabitId id: UUID) -> Binding<Habito> {
+        guard let index = viewModel.habitos.firstIndex(where: { $0.id == id }) else {
             fatalError("Habit not found")
         }
         return $viewModel.habitos[index]
