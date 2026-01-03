@@ -1,9 +1,4 @@
-//
-//  StreakCalculator.swift
-//  HabitApp
-//
-//  Created on 3/1/26.
-//
+// TaskApp/HabitApp/Features/Streaks/Models/StreakCalculator.swift
 
 import Foundation
 
@@ -34,11 +29,14 @@ struct StreakCalculator {
             return StreakData(currentStreak: 0, longestStreak: 0, lastCompletionDate: nil)
         }
         
-        // 1. Generar todas las fechas esperadas desde el inicio hasta hoy
+        // 1. Generar todas las fechas esperadas desde el inicio hasta hoy (INCLUSIVE)
         var expectedDates: [Date] = []
         var currentDate = calendar.startOfDay(for: startDate)
         
-        while currentDate <= today {
+        // Incluir hoy en el rango
+        let endDate = today
+        
+        while currentDate <= endDate {
             if habit.debeRealizarse(en: currentDate) {
                 expectedDates.append(currentDate)
             }
@@ -49,32 +47,29 @@ struct StreakCalculator {
             return StreakData(currentStreak: 0, longestStreak: 0, lastCompletionDate: nil)
         }
         
-        // 2. Calcular racha actual y mejor racha
+        // 2. Calcular racha actual (desde el más reciente hacia atrás)
         var currentStreak = 0
-        var tempStreak = 0
         var longestStreak = 0
-        var brokeCurrent = false
+        var tempStreak = 0
         
-        // Recorrer desde la fecha más reciente hacia atrás
+        // Recorrer fechas esperadas en orden descendente (más reciente primero)
         for expectedDate in expectedDates.reversed() {
             let isCompleted = habit.estaCompletado(en: expectedDate)
             
             if isCompleted {
+                // Fecha completada: incrementar rachas
+                currentStreak += 1
                 tempStreak += 1
-                
-                // Solo incrementar racha actual si no se ha roto antes
-                if !brokeCurrent {
-                    currentStreak += 1
-                }
             } else {
-                // Romper racha si es una fecha pasada (no incluye hoy)
-                // Si es hoy (>=today) y no está completado, aún puede completarse
+                // Fecha NO completada
+                // Si es hoy o futuro, no rompe la racha (aún puede completarse)
+                // Si es pasado, rompe la racha actual
                 if expectedDate < today {
-                    brokeCurrent = true
-                    tempStreak = 0
+                    // Ya pasó y no se completó -> romper racha actual
+                    currentStreak = 0
                 }
-                // Si es hoy o futuro y no está completado, no rompe la racha actual
-                // pero tampoco cuenta para la racha temporal
+                // La racha temporal se resetea siempre que no está completado
+                tempStreak = 0
             }
             
             // Actualizar mejor racha
@@ -86,7 +81,7 @@ struct StreakCalculator {
         
         return StreakData(
             currentStreak: currentStreak,
-            longestStreak: longestStreak,
+            longestStreak: max(longestStreak, currentStreak), // Asegurar que longest >= current
             lastCompletionDate: lastCompletion
         )
     }
