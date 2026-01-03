@@ -9,9 +9,11 @@ import SwiftUI
 
 /// Vista que muestra información de racha en HabitDetailView
 struct StreakSectionView: View {
-    let habit: Habito
+    @Binding var habit: Habito
     
     private var streakData: StreakData {
+        // Recalcular cada vez que cambia el hábito
+        // Esto asegura que se actualice cuando se marca como completado
         StreakCalculator.calculate(for: habit)
     }
     
@@ -151,7 +153,7 @@ private struct StatItem: View {
 // MARK: - Preview
 
 #Preview("Con racha activa") {
-    let habit = Habito(
+    @Previewable @State var habit = Habito(
         title: "Ejercicio",
         descripcion: "30 minutos de ejercicio",
         fechaInicio: Calendar.current.date(byAdding: .day, value: -30, to: Date()),
@@ -166,12 +168,12 @@ private struct StatItem: View {
         ]
     )
     
-    return StreakSectionView(habit: habit)
+    return StreakSectionView(habit: $habit)
         .padding()
 }
 
 #Preview("Sin racha") {
-    let habit = Habito(
+    @Previewable @State var habit = Habito(
         title: "Meditación",
         descripcion: "10 minutos diarios",
         fechaInicio: Calendar.current.date(byAdding: .day, value: -30, to: Date()),
@@ -182,6 +184,30 @@ private struct StatItem: View {
         fechaCompletitud: []
     )
     
-    return StreakSectionView(habit: habit)
+    return StreakSectionView(habit: $habit)
+        .padding()
+}
+
+#Preview("Completado HOY") {
+    let calendar = Calendar.current
+    let today = Date()
+    
+    @Previewable @State var habit = Habito(
+        title: "Lectura",
+        descripcion: "Leer 30 minutos",
+        fechaInicio: calendar.date(byAdding: .day, value: -10, to: today),
+        tipoFrecuencia: .semanal,
+        vecesPorPeriodo: 7,
+        diasSemana: [1, 2, 3, 4, 5, 6, 7], // Todos los días
+        diasMes: [],
+        fechaCompletitud: [
+            // Completado hoy y los últimos 2 días
+            calendar.startOfDay(for: today), // HOY
+            calendar.date(byAdding: .day, value: -1, to: today)!, // Ayer
+            calendar.date(byAdding: .day, value: -2, to: today)!, // Anteayer
+        ]
+    )
+    
+    return StreakSectionView(habit: $habit)
         .padding()
 }

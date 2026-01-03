@@ -67,12 +67,14 @@ struct StreakCalculator {
                     currentStreak += 1
                 }
             } else {
-                // Solo romper racha si es una fecha pasada
-                // Si es hoy y no está completado, no rompe la racha aún
+                // Romper racha si es una fecha pasada (no incluye hoy)
+                // Si es hoy (>=today) y no está completado, aún puede completarse
                 if expectedDate < today {
                     brokeCurrent = true
                     tempStreak = 0
                 }
+                // Si es hoy o futuro y no está completado, no rompe la racha actual
+                // pero tampoco cuenta para la racha temporal
             }
             
             // Actualizar mejor racha
