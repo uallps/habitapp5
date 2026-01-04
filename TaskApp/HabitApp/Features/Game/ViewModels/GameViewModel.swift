@@ -142,16 +142,6 @@ final class GameViewModel: ObservableObject {
         return models[index]
     }
     
-    // MARK: - Initialization
-    
-    init(storageProvider: StorageProvider) {
-        self.storageProvider = storageProvider
-        Task {
-            await loadGameData()
-            await loadHabitos()
-        }
-    }
-    
     // MARK: - Data Loading
     
     func loadGameData() async {
