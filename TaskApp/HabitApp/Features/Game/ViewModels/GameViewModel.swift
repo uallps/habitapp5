@@ -16,11 +16,13 @@ final class GameViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var habitos: [Habito] = []
     @Published var selectedHabitoId: UUID?
+    @Published var gameData = GameData()
     
     // MARK: - Private Properties
     
     private var cancellables = Set<AnyCancellable>()
     private let storageProvider: StorageProvider
+    private let gameStorageService = GameStorageService.shared
     
     // MARK: - Computed Properties
     
@@ -34,16 +36,93 @@ final class GameViewModel: ObservableObject {
         return calculateLevel(for: habito)
     }
     
+    var currentProgress: HabitGameProgress? {
+        guard let habitId = selectedHabitoId else { return nil }
+        return gameData.habitProgresses[habitId] ?? HabitGameProgress(habitId: habitId)
+    }
+    
+    var currentSprite: DragonSpriteType {
+        return currentProgress?.currentSprite ?? .egg
+    }
+    
+    var currentAsciiArt: String {
+        let sprite = currentSprite
+        
+        // Si es dragón adulto, usar la semilla para mantener consistencia
+        if sprite == .adultDragon, let progress = currentProgress {
+            let models = [
+                """
+                    /\\_/\\
+                   ( o.o )
+                    > ^ <  ~<{
+                   /|   |\\  ))
+                  (_|   |_)/
+                """,
+                """
+                   ____
+                  /    \\__
+                 (  @  @ )
+                  \\  <>  /~<{
+                   /|  |\\  ))
+                  (_|  |_)/
+                """,
+                """
+                   _/\\_
+                  ( ^^ )
+                 /\\_||_/\\
+                 ( o  o )~<{
+                  \\____/ ))
+                   || ||
+                """,
+                """
+                     /\\
+                   _/  \\_
+                  ( O  O )
+                   \\ __ /~<{
+                  /|    |\\ ))
+                 (_|    |_)/
+                """,
+                """
+                  __/\\__
+                 /  **  \\
+                ( @    @ )
+                 \\  ==  /~<{
+                  /|  |\\ ))
+                 (_|  |_)/
+                """
+            ]
+            let index = progress.dragonSeed % models.count
+            return models[index]
+        }
+        
+        return sprite.asciiArt
+    }
+    
+    var availableItems: [ShopItem] {
+        return ShopItem.allItems.filter { $0.requiredLevel <= nivel }
+    }
+    
     // MARK: - Initialization
     
     init(storageProvider: StorageProvider) {
         self.storageProvider = storageProvider
         Task {
+            await loadGameData()
             await loadHabitos()
         }
     }
     
     // MARK: - Data Loading
+    
+    func loadGameData() async {
+        do {
+            gameData = try await gameStorageService.loadGameData()
+            print("[GameViewModel] Game data loaded: \(gameData.habitProgresses.count) progresses")
+        } catch {
+            print("❌ [GameViewModel] Error loading game data: \(error)")
+            gameData = GameData()
+        }
+    }
     
     func loadHabitos() async {
         isLoading = true
@@ -51,17 +130,30 @@ final class GameViewModel: ObservableObject {
         
         do {
             habitos = try await storageProvider.loadHabits()
+            print("[GameViewModel] Loaded \(habitos.count) habits")
             
-            // Seleccionar el primer hábito por defecto si hay alguno
+            // Seleccionar el primer hábito por defecto si no hay ninguno seleccionado
             if selectedHabitoId == nil, let firstHabito = habitos.first {
+                selectedHabitoId = firstHabito.id
+            }
+            
+            // Si el hábito seleccionado ya no existe, seleccionar el primero disponible
+            if let selectedId = selectedHabitoId,
+               !habitos.contains(where: { $0.id == selectedId }),
+               let firstHabito = habitos.first {
                 selectedHabitoId = firstHabito.id
             }
         } catch {
             errorMessage = "Error al cargar hábitos: \(error.localizedDescription)"
-            print("❌ [GameViewModel] Error cargando hábitos: \(error)")
+            print("❌ [GameViewModel] Error loading habits: \(error)")
         }
         
         isLoading = false
+    }
+    
+    /// Recarga los hábitos (llamar cuando el usuario hace clic en el selector)
+    func reloadHabitos() async {
+        await loadHabitos()
     }
     
     // MARK: - Level Calculation
@@ -120,5 +212,49 @@ final class GameViewModel: ObservableObject {
         }
         
         return totalLevel
+    }
+    
+    // MARK: - Shop Methods
+    
+    func canPurchaseItem(_ item: ShopItem) -> Bool {
+        guard let habitId = selectedHabitoId else { return false }
+        let progress = gameData.habitProgresses[habitId] ?? HabitGameProgress(habitId: habitId)
+        
+        // Puede comprar si: el nivel es suficiente Y no lo ha comprado ya
+        return item.requiredLevel <= nivel && !progress.isItemPurchased(item.id)
+    }
+    
+    func isItemPurchased(_ item: ShopItem) -> Bool {
+        guard let habitId = selectedHabitoId else { return false }
+        let progress = gameData.habitProgresses[habitId] ?? HabitGameProgress(habitId: habitId)
+        return progress.isItemPurchased(item.id)
+    }
+    
+    func purchaseItem(_ item: ShopItem) async {
+        guard let habitId = selectedHabitoId else { return }
+        
+        // Verificar que puede comprar
+        guard canPurchaseItem(item) else {
+            print("⚠️ [GameViewModel] Cannot purchase item: \(item.name)")
+            return
+        }
+        
+        // Obtener o crear progreso
+        var progress = gameData.habitProgresses[habitId] ?? HabitGameProgress(habitId: habitId)
+        
+        // Comprar el objeto
+        progress.purchaseItem(item.id)
+        
+        // Actualizar en gameData
+        gameData.updateProgress(progress)
+        
+        // Guardar
+        do {
+            try await gameStorageService.saveGameData(gameData)
+            print("✅ [GameViewModel] Purchased item: \(item.name)")
+        } catch {
+            print("❌ [GameViewModel] Error saving after purchase: \(error)")
+            errorMessage = "Error al guardar la compra"
+        }
     }
 }
