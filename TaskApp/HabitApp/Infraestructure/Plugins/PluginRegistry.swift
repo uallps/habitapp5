@@ -159,6 +159,13 @@ class PluginRegistry: ObservableObject {
             .filter { $0.isEnabled }
             .map { AnyView($0.habitDetailView(for: habito)) }
     }
+
+    /// Obtiene la primera instancia de un plugin del tipo solicitado
+    /// - Parameter type: Tipo de plugin concreto
+    /// - Returns: Instancia del plugin si existe
+    func getPlugin<T>(ofType type: T.Type) -> T? {
+        pluginInstances.compactMap { $0 as? T }.first
+    }
     
     /// Obtiene todas las vistas de configuración de los plugins
     /// - Returns: Array de vistas de configuración proporcionadas por los plugins

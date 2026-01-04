@@ -176,20 +176,11 @@ struct HabitListView: View {
     // MARK: - Filter Setup
     
     private func setupFilter() {
-        let config = AppConfig.shared
-        filterPlugin = FilterPlugin(config: config)
+        filterPlugin = PluginRegistry.shared.getPlugin(ofType: FilterPlugin.self)
     }
     
     private func loadCategories() {
-        availableCategories = [
-            CategoryModel.salud,
-            CategoryModel.estudio,
-            CategoryModel.deporte,
-            CategoryModel.trabajo,
-            CategoryModel.ocio,
-            CategoryModel.familia,
-            CategoryModel.finanzas
-        ]
+        availableCategories = CategoryModel.allCategories
     }
 }
 
