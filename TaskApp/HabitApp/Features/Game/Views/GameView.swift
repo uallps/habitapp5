@@ -22,7 +22,7 @@ struct GameView: View {
                 }
                 .padding()
             }
-            .navigationTitle("game")
+            .navigationTitle("Game")
             .navigationBarTitleDisplayMode(.large)
         }
     }
