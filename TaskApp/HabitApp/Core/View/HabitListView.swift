@@ -11,9 +11,16 @@ import SwiftUI
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
     @State private var selectedHabitID: UUID?
+    @State private var filterPlugin: FilterPlugin?
+    @State private var availableCategories: [CategoryModel] = []
 
     init(storageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
+    }
+    
+    private var filteredHabits: [Habito] {
+        guard let plugin = filterPlugin else { return viewModel.habitos }
+        return plugin.applyFilter(to: viewModel.habitos)
     }
     
     var body: some View {
@@ -27,17 +34,25 @@ struct HabitListView: View {
     }
 
     private var content: some View {
-        List {
-            ForEach($viewModel.habitos) { $habit in
-                habitRow(habit: habit)
+        VStack(spacing: 0) {
+            // Filtros
+            if let plugin = filterPlugin {
+                plugin.getFilterView(with: availableCategories)
             }
-            .onDelete { indexSet in
-                _Concurrency.Task {
-                    await viewModel.removeHabits(atOffsets: indexSet)
+            
+            // Lista de hábitos
+            List {
+                ForEach($viewModel.habitos) { $habit in
+                    habitRow(habit: habit)
+                }
+                .onDelete { indexSet in
+                    _Concurrency.Task {
+                        await viewModel.removeHabits(atOffsets: indexSet)
+                    }
                 }
             }
+            .appListContainer()
         }
-        .appListContainer()
         .navigationTitle("Hábitos")
         .navigationDestination(isPresented: Binding(
             get: { selectedHabitID != nil },
@@ -65,19 +80,23 @@ struct HabitListView: View {
         }
         .task {
             await viewModel.loadHabits()
+            setupFilter()
+            loadCategories()
         }
     }
     
     @ViewBuilder
     private func habitRow(habit: Habito) -> some View {
-        Button {
-            selectedHabitID = habit.id
-        } label: {
-            HabitRowView(habit: habit, toggleCompletion: {
-                _Concurrency.Task {
-                    await viewModel.toggleCompletion(task: habit)
-                }
-            })
+        // Solo mostrar si pasa el filtro
+        if filteredHabits.contains(where: { $0.id == habit.id }) {
+            Button {
+                selectedHabitID = habit.id
+            } label: {
+                HabitRowView(habit: habit, toggleCompletion: {
+                    _Concurrency.Task {
+                        await viewModel.toggleCompletion(task: habit)
+                    }
+                })
             .appCard(padding: 14)
             .overlay(alignment: .bottomTrailing) {
                 statusBadge(for: habit)
@@ -92,6 +111,7 @@ struct HabitListView: View {
             }
         }
         .appListRowCard()
+        }
     }
 
     @ViewBuilder
@@ -151,6 +171,25 @@ struct HabitListView: View {
         _Concurrency.Task {
             await viewModel.saveHabits()
         }
+    }
+    
+    // MARK: - Filter Setup
+    
+    private func setupFilter() {
+        let config = AppConfig.shared
+        filterPlugin = FilterPlugin(config: config)
+    }
+    
+    private func loadCategories() {
+        availableCategories = [
+            CategoryModel.salud,
+            CategoryModel.estudio,
+            CategoryModel.deporte,
+            CategoryModel.trabajo,
+            CategoryModel.ocio,
+            CategoryModel.familia,
+            CategoryModel.finanzas
+        ]
     }
 }
 
