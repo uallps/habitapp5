@@ -137,7 +137,7 @@ private struct CategoryFilterButton: View {
 private struct FlowLayout: Layout {
     let spacing: CGFloat
     
-    func sizeThatFits(proposal: ProposedSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         guard !subviews.isEmpty else { return .zero }
         
         let maxWidth = (proposal.width ?? 300)
@@ -160,7 +160,7 @@ private struct FlowLayout: Layout {
         return CGSize(width: maxWidth, height: height)
     }
     
-    func placeSubviews(in bounds: CGRect, proposal: ProposedSize, subviews: Subviews, cache: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         guard !subviews.isEmpty else { return }
         
         var x: CGFloat = bounds.minX
@@ -174,7 +174,7 @@ private struct FlowLayout: Layout {
                 x = bounds.minX
                 lineHeight = 0
             }
-            let proposedSize = ProposedSize(width: size.width, height: size.height)
+            let proposedSize = ProposedViewSize(width: size.width, height: size.height)
             subview.place(
                 at: CGPoint(x: x, y: y),
                 proposal: proposedSize
@@ -208,8 +208,16 @@ private struct SearchFieldView: View {
             }
         }
         .padding(8)
-        .background(Color(uiColor: .tertiarySystemGroupedBackground))
+        .background(searchFieldBackground)
         .cornerRadius(8)
+    }
+    
+    private var searchFieldBackground: Color {
+        #if os(iOS)
+        Color(uiColor: .tertiarySystemGroupedBackground)
+        #else
+        Color.gray.opacity(0.1)
+        #endif
     }
 }
 
