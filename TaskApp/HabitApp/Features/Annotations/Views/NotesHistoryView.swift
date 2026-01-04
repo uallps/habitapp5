@@ -101,6 +101,10 @@ struct NotesHistoryView: View {
             } message: { note in
                 Text("¿Estás seguro de que quieres eliminar la nota del \(note.formattedDate)?")
             }
+            .task {
+                // Cargar notas al presentar el historial
+                await viewModel.loadNotes()
+            }
         }
     }
     

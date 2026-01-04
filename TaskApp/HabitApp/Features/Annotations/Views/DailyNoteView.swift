@@ -154,6 +154,11 @@ struct DailyNoteView: View {
         .onAppear {
             loadNoteForSelectedDate()
         }
+        .task {
+            // Asegura que las notas se carguen desde persistencia al mostrar la vista
+            await viewModel.loadNotes()
+            loadNoteForSelectedDate()
+        }
         .sheet(isPresented: $showHistory) {
             NotesHistoryView(habit: habit)
         }
