@@ -9,12 +9,12 @@ import Foundation
 import SwiftUI
 
 /// ViewModel para gestionar notas diarias
-@Observable
-class DailyNoteViewModel {
+@MainActor
+class DailyNoteViewModel: ObservableObject {
     private let storageKey = "daily_notes_storage"
-    private(set) var notes: [DailyNote] = []
-    var isLoading = false
-    var errorMessage: String?
+    @Published private(set) var notes: [DailyNote] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
     
     init() {
         Task {
