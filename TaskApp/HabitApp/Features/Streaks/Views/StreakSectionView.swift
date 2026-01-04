@@ -11,11 +11,8 @@ import SwiftUI
 struct StreakSectionView: View {
     @Binding var habit: Habito
     
-    private var streakData: StreakData {
-        // Recalcular cada vez que cambia el hábito
-        // Esto asegura que se actualice cuando se marca como completado
-        StreakCalculator.calculate(for: habit)
-    }
+    // Usar @State para forzar recálculo cuando cambie el hábito
+    @State private var streakData: StreakData = StreakData(currentStreak: 0, longestStreak: 0, lastCompletionDate: nil)
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -25,6 +22,27 @@ struct StreakSectionView: View {
             // Estadísticas adicionales
             estadisticasSecundarias
         }
+        .onAppear {
+            calculateStreak()
+        }
+        .onChange(of: habit.fechaCompletitud) { _, _ in
+            calculateStreak()
+        }
+        .onChange(of: habit.diasSemana) { _, _ in
+            calculateStreak()
+        }
+        .onChange(of: habit.diasMes) { _, _ in
+            calculateStreak()
+        }
+        .onChange(of: habit.tipoFrecuencia) { _, _ in
+            calculateStreak()
+        }
+    }
+    
+    private func calculateStreak() {
+        print("🔄 [StreakSectionView] Recalculando racha para '\(habit.title)'")
+        streakData = StreakCalculator.calculate(for: habit)
+        print("📊 [StreakSectionView] Racha calculada: \(streakData.currentStreak)")
     }
     
     // MARK: - Componentes
