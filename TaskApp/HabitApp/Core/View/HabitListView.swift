@@ -14,7 +14,7 @@ struct HabitListView: View {
     @State private var selectedHabitID: UUID?
     @State private var filterProvider: HabitFilterProvider?
     @State private var availableCategories: [CategoryModel] = []
-    @State private var showFilterScreen = false
+    @State private var filterRefreshToggle = false
     @ObservedObject private var pluginRegistry = PluginRegistry.shared
 
     init(storageProvider: StorageProvider) {
@@ -38,6 +38,11 @@ struct HabitListView: View {
 
     private var content: some View {
         VStack(spacing: 0) {
+            // Filtros
+            if let provider = filterProvider, provider.isEnabled {
+                provider.filterView(categories: availableCategories)
+            }
+            
             // Lista de hábitos filtrados
             List {
                 ForEach(filteredHabits, id: \Habito.id) { habit in
@@ -53,6 +58,7 @@ struct HabitListView: View {
                     }
                 }
             }
+            .id(filterRefreshToggle)
             .appListContainer()
         }
         .navigationTitle("Hábitos")
@@ -73,33 +79,6 @@ struct HabitListView: View {
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button {
-                        showFilterScreen = true
-                    } label: {
-                        Label("Filtros", systemImage: "funnel")
-                    }
-                    
-                    if let provider = filterProvider, provider.isEnabled, viewModel.filterState.isActive {
-                        Button {
-                            resetFilters()
-                        } label: {
-                            Label("Limpiar filtros", systemImage: "xmark.circle")
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "funnel")
-                        if let provider = filterProvider, provider.isEnabled, viewModel.filterState.isActive {
-                            Image(systemName: "circle.fill")
-                                .font(.system(size: 4))
-                                .foregroundStyle(.accentColor)
-                        }
-                    }
-                }
-            }
-            
-            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     addNewHabit()
                 } label: {
@@ -107,22 +86,17 @@ struct HabitListView: View {
                 }
             }
         }
-        .sheet(isPresented: $showFilterScreen) {
-            if let provider = filterProvider as? FilterPlugin {
-                FilterScreenView(
-                    viewModel: provider.viewModel,
-                    availableCategories: availableCategories,
-                    onApply: {}
-                )
-            }
-        }
         .task {
             await viewModel.loadHabits()
             setupFilter()
             loadCategories()
+            bindFilterUpdates()
         }
         .onReceive(pluginRegistry.objectWillChange) { _ in
             setupFilter()
+        }
+        .onReceive(filterChangePublisher) { _ in
+            filterRefreshToggle.toggle()
         }
     }
     
@@ -223,18 +197,12 @@ struct HabitListView: View {
     private func loadCategories() {
         availableCategories = CategoryModel.allCategories
     }
-    
-    private func resetFilters() {
-        if let provider = filterProvider as? FilterPlugin {
-            provider.viewModel.resetFilters()
+
+    private var filterChangePublisher: AnyPublisher<Void, Never> {
+        if let provider = filterProvider {
+            return provider.filterDidChange
         }
-    }
-    
-    private var filterState: FilterState {
-        guard let provider = filterProvider as? FilterPlugin else {
-            return FilterState()
-        }
-        return provider.viewModel.filterState
+        return Empty(completeImmediately: false).eraseToAnyPublisher()
     }
 }
 
