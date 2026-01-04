@@ -97,7 +97,7 @@ struct HabitListView: View {
             setupFilter()
             bindFilterUpdates()
         }
-        .onReceive(filterViewModel?.objectWillChange ?? Empty().eraseToAnyPublisher()) { _ in
+        .onReceive(filterChangePublisher) { _ in
             filterRefreshToggle.toggle()
         }
     }
@@ -203,6 +203,16 @@ struct HabitListView: View {
 
     private func bindFilterUpdates() {
         // handled via onReceive in body; kept for parity and future hooks
+    }
+
+    private var filterChangePublisher: AnyPublisher<Void, Never> {
+        if let vm = filterViewModel {
+            return vm.objectWillChange
+                .map { _ in () }
+                .eraseToAnyPublisher()
+        } else {
+            return Empty(completeImmediately: false).eraseToAnyPublisher()
+        }
     }
 }
 
