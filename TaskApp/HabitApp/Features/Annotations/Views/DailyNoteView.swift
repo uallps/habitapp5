@@ -10,7 +10,7 @@ import SwiftUI
 /// Vista para gestionar notas diarias de un hábito
 struct DailyNoteView: View {
     let habit: Habito
-    @State private var viewModel = DailyNoteViewModel()
+    @StateObject private var viewModel = DailyNoteViewModel()
     @State private var selectedDate = Date()
     @State private var noteContent = ""
     @State private var isEditing = false
@@ -160,7 +160,7 @@ struct DailyNoteView: View {
             loadNoteForSelectedDate()
         }
         .sheet(isPresented: $showHistory) {
-            NotesHistoryView(habit: habit)
+            NotesHistoryView(habit: habit, viewModel: viewModel)
         }
     }
     

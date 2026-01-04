@@ -10,12 +10,16 @@ import SwiftUI
 /// Vista para mostrar el historial completo de notas diarias
 struct NotesHistoryView: View {
     let habit: Habito
-    @State private var viewModel = DailyNoteViewModel()
+    @StateObject private var viewModel: DailyNoteViewModel
     @State private var searchText = ""
-    @State private var selectedMonth: Date = Date()
     @State private var showDeleteConfirmation = false
     @State private var noteToDelete: DailyNote?
     @Environment(\.dismiss) private var dismiss
+
+    init(habit: Habito, viewModel: DailyNoteViewModel = DailyNoteViewModel()) {
+        self.habit = habit
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     private var filteredNotes: [DailyNote] {
         let habitNotes = viewModel.getNotes(for: habit.id)
