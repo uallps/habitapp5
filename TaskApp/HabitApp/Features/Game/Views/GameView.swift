@@ -8,31 +8,63 @@
 import SwiftUI
 
 struct GameView: View {
-    @StateObject private var viewModel = GameViewModel()
+    @StateObject private var viewModel: GameViewModel
+    @EnvironmentObject var appConfig: AppConfig
+    
+    init(storageProvider: StorageProvider) {
+        _viewModel = StateObject(wrappedValue: GameViewModel(storageProvider: storageProvider))
+    }
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Encabezado temporal
-                    headerSection
-                    
-                    // Contenido placeholder
-                    placeholderContent
+            VStack(spacing: 24) {
+                if viewModel.isLoading {
+                    ProgressView("Cargando hábitos...")
+                } else if let error = viewModel.errorMessage {
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                } else if viewModel.habitos.isEmpty {
+                    emptyStateView
+                } else {
+                    habitSelectorSection
+                    levelSection
+                    Spacer()
                 }
-                .padding()
             }
-            .navigationTitle("Game")
+            .padding()
+            .navigationTitle("Juego")
             .navigationBarTitleDisplayMode(.large)
         }
     }
     
     // MARK: - Components
     
-    private var headerSection: some View {
+    private var habitSelectorSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Hábito")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            
+            Picker("Seleccionar hábito", selection: $viewModel.selectedHabitoId) {
+                ForEach(viewModel.habitos) { habito in
+                    Text(habito.title)
+                        .tag(habito.id as UUID?)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.secondary.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+    
+    private var levelSection: some View {
         VStack(spacing: 12) {
-            Image(systemName: "gamecontroller.fill")
-                .font(.system(size: 60))
+            Text("Nivel: \(viewModel.nivel)")
+                .font(.system(size: 48, weight: .bold))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [.purple, .blue],
@@ -41,14 +73,12 @@ struct GameView: View {
                     )
                 )
             
-            Text("Gamificación")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text("Convierte tus hábitos en un juego")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            if let habito = viewModel.selectedHabito {
+                Text("Basado en todas las rachas de '\(habito.title)'")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -56,68 +86,28 @@ struct GameView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
-    private var placeholderContent: some View {
+    private var emptyStateView: some View {
         VStack(spacing: 16) {
-            InfoCard(
-                icon: "star.fill",
-                title: "Puntos",
-                description: "Gana puntos completando hábitos",
-                color: .yellow
-            )
+            Image(systemName: "tray.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(.secondary)
             
-            InfoCard(
-                icon: "chart.line.uptrend.xyaxis",
-                title: "Niveles",
-                description: "Sube de nivel y desbloquea recompensas",
-                color: .blue
-            )
+            Text("No hay hábitos")
+                .font(.title3)
+                .fontWeight(.semibold)
             
-            InfoCard(
-                icon: "trophy.fill",
-                title: "Logros",
-                description: "Desbloquea logros especiales",
-                color: .orange
-            )
-        }
-    }
-}
-
-// MARK: - Supporting Views
-
-private struct InfoCard: View {
-    let icon: String
-    let title: String
-    let description: String
-    let color: Color
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 30))
-                .foregroundStyle(color)
-                .frame(width: 50, height: 50)
-                .background(color.opacity(0.2))
-                .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Spacer()
+            Text("Crea un hábito para empezar a ganar niveles")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
         }
         .padding()
-        .background(Color.secondary.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    GameView()
+    GameView(storageProvider: MockStorageProvider())
+        .environmentObject(AppConfig())
 }

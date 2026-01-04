@@ -14,70 +14,111 @@ final class GameViewModel: ObservableObject {
     
     @Published var isLoading = false
     @Published var errorMessage: String?
-    
-    // Propiedades futuras para gamificación
-    @Published var totalPoints: Int = 0
-    @Published var currentLevel: Int = 1
-    @Published var unlockedAchievements: [String] = []
+    @Published var habitos: [Habito] = []
+    @Published var selectedHabitoId: UUID?
     
     // MARK: - Private Properties
     
     private var cancellables = Set<AnyCancellable>()
+    private let storageProvider: StorageProvider
+    
+    // MARK: - Computed Properties
+    
+    var selectedHabito: Habito? {
+        guard let id = selectedHabitoId else { return nil }
+        return habitos.first { $0.id == id }
+    }
+    
+    var nivel: Int {
+        guard let habito = selectedHabito else { return 0 }
+        return calculateLevel(for: habito)
+    }
     
     // MARK: - Initialization
     
-    init() {
-        setupObservers()
-        loadGameData()
-    }
-    
-    // MARK: - Setup
-    
-    private func setupObservers() {
-        // Observar cambios en hábitos para actualizar puntos
-        NotificationCenter.default.publisher(for: .habitCompleted)
-            .sink { [weak self] notification in
-                self?.handleHabitCompleted(notification)
-            }
-            .store(in: &cancellables)
+    init(storageProvider: StorageProvider) {
+        self.storageProvider = storageProvider
+        Task {
+            await loadHabitos()
+        }
     }
     
     // MARK: - Data Loading
     
-    private func loadGameData() {
-        // TODO: Cargar datos de gamificación desde SwiftData
-        // Por ahora, datos de ejemplo
-        totalPoints = 0
-        currentLevel = 1
-        unlockedAchievements = []
+    func loadHabitos() async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            habitos = try await storageProvider.loadHabits()
+            
+            // Seleccionar el primer hábito por defecto si hay alguno
+            if selectedHabitoId == nil, let firstHabito = habitos.first {
+                selectedHabitoId = firstHabito.id
+            }
+        } catch {
+            errorMessage = "Error al cargar hábitos: \(error.localizedDescription)"
+            print("❌ [GameViewModel] Error cargando hábitos: \(error)")
+        }
+        
+        isLoading = false
     }
     
-    // MARK: - Event Handlers
+    // MARK: - Level Calculation
     
-    private func handleHabitCompleted(_ notification: Notification) {
-        // TODO: Implementar lógica cuando se complete un hábito
-        // Calcular puntos, verificar logros, etc.
+    /// Calcula el nivel sumando todas las rachas que ha tenido el hábito
+    /// - Parameter habito: El hábito para calcular el nivel
+    /// - Returns: La suma de todas las rachas individuales
+    private func calculateLevel(for habito: Habito) -> Int {
+        let calendar = Calendar.current
+        
+        // Normalizar todas las fechas de completitud
+        let completedDatesSet = Set(habito.fechaCompletitud.map { 
+            calendar.startOfDay(for: $0) 
+        })
+        
+        guard !completedDatesSet.isEmpty else { return 0 }
+        
+        // Obtener la fecha más antigua de completitud
+        guard let oldestCompletion = completedDatesSet.min() else { return 0 }
+        
+        // Generar todas las fechas esperadas desde el inicio hasta hoy
+        let today = calendar.startOfDay(for: Date())
+        var expectedDates: [Date] = []
+        var currentDate = oldestCompletion
+        
+        while currentDate <= today {
+            if habito.debeRealizarse(en: currentDate) {
+                expectedDates.append(currentDate)
+            }
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+        }
+        
+        guard !expectedDates.isEmpty else { return 0 }
+        
+        // Calcular todas las rachas individuales
+        var totalLevel = 0
+        var currentStreakLength = 0
+        
+        for expectedDate in expectedDates {
+            let isCompleted = completedDatesSet.contains(expectedDate)
+            
+            if isCompleted {
+                currentStreakLength += 1
+            } else {
+                // Si había una racha en curso, sumarla al nivel total
+                if currentStreakLength > 0 {
+                    totalLevel += currentStreakLength
+                    currentStreakLength = 0
+                }
+            }
+        }
+        
+        // No olvidar sumar la última racha si aún está activa
+        if currentStreakLength > 0 {
+            totalLevel += currentStreakLength
+        }
+        
+        return totalLevel
     }
-    
-    // MARK: - Public Methods
-    
-    func calculatePoints(for habit: Habito) -> Int {
-        // TODO: Implementar cálculo de puntos según dificultad, racha, etc.
-        return 10
-    }
-    
-    func checkForNewAchievements() {
-        // TODO: Verificar si se desbloquearon nuevos logros
-    }
-    
-    func calculateLevelProgress() -> Double {
-        // TODO: Calcular progreso hacia el siguiente nivel
-        return 0.0
-    }
-}
-
-// MARK: - Notification Names
-
-extension Notification.Name {
-    static let habitCompleted = Notification.Name("habitCompleted")
 }

@@ -14,7 +14,7 @@ final class GamePlugin: ViewPlugin {
     // MARK: - Propiedades de FeaturePlugin
     
     let identifier = "com.habitapp.game"
-    let name = "Gamificación"
+    let name = "Juego"
     
     var models: [any PersistentModel.Type] {
         return [] // TODO: Agregar modelos cuando se implementen
@@ -31,11 +31,6 @@ final class GamePlugin: ViewPlugin {
     // MARK: - Propiedades Privadas
     
     private let config: AppConfig
-    
-    @MainActor
-    private lazy var viewModel: GameViewModel = {
-        return GameViewModel()
-    }()
     
     // MARK: - Inicialización
     
@@ -57,60 +52,13 @@ final class GamePlugin: ViewPlugin {
     }
     
     func settingsView() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Toggle para habilitar/deshabilitar el plugin
-            Toggle(isOn: Binding(
-                get: { self.pluginEnabled },
-                set: { newValue in
-                    self.pluginEnabled = newValue
-                    // Notificar al registry para actualizar la UI
-                    Task { @MainActor in
-                        PluginRegistry.shared.pluginStateDidChange()
-                    }
-                }
-            )) {
-                Label("Plugin de Gamificación", systemImage: "gamecontroller.fill")
-                    .font(.headline)
-            }
-            
-            Text("Añade mecánicas de juego como puntos, niveles y logros a tus hábitos")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            if isEnabled {
-                Divider()
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Estado")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                    
-                    HStack {
-                        Text("Puntos totales:")
-                            .font(.caption)
-                        Spacer()
-                        Text("\(viewModel.totalPoints)")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                    }
-                    
-                    HStack {
-                        Text("Nivel actual:")
-                            .font(.caption)
-                        Spacer()
-                        Text("\(viewModel.currentLevel)")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color.secondary.opacity(0.05))
-        .cornerRadius(8)
+        GameSettingsView()
     }
     
     func mainNavigationView() -> (title: String, view: AnyView)? {
-        return ("game", AnyView(GameView()))
+        return ("Juego", AnyView(
+            GameView(storageProvider: config.storageProvider)
+                .environmentObject(config)
+        ))
     }
 }
