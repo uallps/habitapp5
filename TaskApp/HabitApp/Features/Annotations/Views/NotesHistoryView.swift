@@ -233,8 +233,16 @@ private struct StatBox: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .background(statBackground)
         .cornerRadius(12)
+    }
+
+    private var statBackground: Color {
+        #if os(iOS)
+        Color(uiColor: .secondarySystemGroupedBackground)
+        #else
+        Color.secondary.opacity(0.1)
+        #endif
     }
 }
 

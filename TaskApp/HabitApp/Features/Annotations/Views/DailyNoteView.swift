@@ -14,7 +14,7 @@ struct DailyNoteView: View {
     @State private var selectedDate = Date()
     @State private var noteContent = ""
     @State private var isEditing = false
-        @State private var showHistory = false
+    @State private var showHistory = false
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -152,10 +152,10 @@ struct DailyNoteView: View {
             }
         }
         .onAppear {
-                    .sheet(isPresented: $showHistory) {
-                        NotesHistoryView(habit: habit)
-                    }
             loadNoteForSelectedDate()
+        }
+        .sheet(isPresented: $showHistory) {
+            NotesHistoryView(habit: habit)
         }
     }
     
