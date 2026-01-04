@@ -166,6 +166,11 @@ struct HabitDetailView: View {
                     .padding(.vertical, 4)
                 }
                 
+                // Sección de Notas Diarias
+                Section(header: AppSectionHeader(title: "Notas Diarias")) {
+                    DailyNoteView(habit: habit)
+                }
+                
                 // Sección de Historial de Completitud
                 Section(header: AppSectionHeader(title: "Historial de Completitud")) {
                     if habit.fechaCompletitud.isEmpty {
