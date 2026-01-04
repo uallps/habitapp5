@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine 
 
 /// ViewModel para gestionar notas diarias
 @MainActor

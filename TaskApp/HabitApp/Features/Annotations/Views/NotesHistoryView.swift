@@ -10,7 +10,7 @@ import SwiftUI
 /// Vista para mostrar el historial completo de notas diarias
 struct NotesHistoryView: View {
     let habit: Habito
-    @ObservedReferencedObject private var viewModel: DailyNoteViewModel
+    @ObservedObject private var viewModel: DailyNoteViewModel
     @State private var searchText = ""
     @State private var showDeleteConfirmation = false
     @State private var noteToDelete: DailyNote?
@@ -18,7 +18,7 @@ struct NotesHistoryView: View {
 
     init(habit: Habito, viewModel: DailyNoteViewModel) {
         self.habit = habit
-        self.viewModel = viewModel
+        self._viewModel = ObservedObject(initialValue: viewModel)
     }
     
     private var filteredNotes: [DailyNote] {
@@ -190,9 +190,7 @@ struct NotesHistoryView: View {
                 }
             }
         }
-        #if os(iOS)
         .listStyle(.insetGrouped)
-        #endif
     }
     
     // MARK: - Computed Properties
