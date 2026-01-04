@@ -63,51 +63,59 @@ struct NotesHistoryView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.getNotes(for: habit.id).isEmpty {
-                    emptyStateView
-                } else {
-                    notesListView
-                }
-            }
-            .navigationTitle("Historial de Notas")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") {
-                        dismiss()
+        ZStack {
+            NavigationStack {
+                Group {
+                    if viewModel.getNotes(for: habit.id).isEmpty {
+                        emptyStateView
+                    } else {
+                        notesListView
                     }
                 }
-                
+                .navigationTitle("Historial de Notas")
                 #if os(iOS)
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
-                        Text("Historial de Notas")
-                            .font(.headline)
-                        Text(habit.title)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                .navigationBarTitleDisplayMode(.inline)
                 #endif
-            }
-            .searchable(text: $searchText, prompt: "Buscar en notas")
-            .alert("Eliminar nota", isPresented: $showDeleteConfirmation, presenting: noteToDelete) { note in
-                Button("Cancelar", role: .cancel) { }
-                Button("Eliminar", role: .destructive) {
-                    Task {
-                        await deleteNote(note)
+                .toolbar {
+                    #if os(macOS)
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cerrar") {
+                            dismiss()
+                        }
                     }
+                    #else
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cerrar") {
+                            dismiss()
+                        }
+                    }
+                    
+                    ToolbarItem(placement: .principal) {
+                        VStack(spacing: 2) {
+                            Text("Historial de Notas")
+                                .font(.headline)
+                            Text(habit.title)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    #endif
                 }
-            } message: { note in
-                Text("¿Estás seguro de que quieres eliminar la nota del \(note.formattedDate)?")
-            }
-            .task {
-                // Cargar notas al presentar el historial
-                await viewModel.loadNotes()
+                .searchable(text: $searchText, prompt: "Buscar en notas")
+                .alert("Eliminar nota", isPresented: $showDeleteConfirmation, presenting: noteToDelete) { note in
+                    Button("Cancelar", role: .cancel) { }
+                    Button("Eliminar", role: .destructive) {
+                        Task {
+                            await deleteNote(note)
+                        }
+                    }
+                } message: { note in
+                    Text("¿Estás seguro de que quieres eliminar la nota del \(note.formattedDate)?")
+                }
+                .task {
+                    // Cargar notas al presentar el historial
+                    await viewModel.loadNotes()
+                }
             }
         }
     }
@@ -191,6 +199,9 @@ struct NotesHistoryView: View {
             }
         }
         .listStyle(.insetGrouped)
+        #if os(macOS)
+            .frame(minWidth: 400, minHeight: 300)
+        #endif
     }
     
     // MARK: - Computed Properties
@@ -336,6 +347,4 @@ private struct NoteRowView: View {
         descripcion: "30 minutos de ejercicio",
         prioridad: .high
     )
-    
-    return NotesHistoryView(habit: habit)
 }
