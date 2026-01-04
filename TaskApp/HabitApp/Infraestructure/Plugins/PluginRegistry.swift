@@ -166,6 +166,13 @@ class PluginRegistry: ObservableObject {
     func getPlugin<T>(ofType type: T.Type) -> T? {
         pluginInstances.compactMap { $0 as? T }.first
     }
+
+    /// Obtiene la primera instancia de un plugin que conforme a un protocolo dado
+    /// - Parameter protocolType: Protocolo al que debe conformar el plugin
+    /// - Returns: Instancia del plugin si existe
+    func getPluginConformingTo<T>(_ protocolType: T.Type) -> T? {
+        pluginInstances.compactMap { $0 as? T }.first
+    }
     
     /// Obtiene todas las vistas de configuración de los plugins
     /// - Returns: Array de vistas de configuración proporcionadas por los plugins

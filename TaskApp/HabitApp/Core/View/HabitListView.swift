@@ -12,9 +12,8 @@ import Combine
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
     @State private var selectedHabitID: UUID?
-    @State private var filterPlugin: FilterPlugin?
+    @State private var filterProvider: HabitFilterProvider?
     @State private var availableCategories: [CategoryModel] = []
-    @State private var filterViewModel: FilterViewModel?
     @State private var filterRefreshToggle = false
     @ObservedObject private var pluginRegistry = PluginRegistry.shared
 
@@ -23,8 +22,8 @@ struct HabitListView: View {
     }
     
     private var filteredHabits: [Habito] {
-        guard let plugin = filterPlugin else { return viewModel.habitos }
-        return plugin.applyFilter(to: viewModel.habitos)
+        guard let provider = filterProvider, provider.isEnabled else { return viewModel.habitos }
+        return provider.applyFilter(to: viewModel.habitos)
     }
     
     var body: some View {
@@ -40,8 +39,8 @@ struct HabitListView: View {
     private var content: some View {
         VStack(spacing: 0) {
             // Filtros
-            if let plugin = filterPlugin, plugin.isEnabled {
-                plugin.getFilterView(with: availableCategories)
+            if let provider = filterProvider, provider.isEnabled {
+                provider.filterView(categories: availableCategories)
             }
             
             // Lista de hábitos filtrados
@@ -95,7 +94,6 @@ struct HabitListView: View {
         }
         .onReceive(pluginRegistry.objectWillChange) { _ in
             setupFilter()
-            bindFilterUpdates()
         }
         .onReceive(filterChangePublisher) { _ in
             filterRefreshToggle.toggle()
@@ -193,26 +191,18 @@ struct HabitListView: View {
     // MARK: - Filter Setup
     
     private func setupFilter() {
-        filterPlugin = PluginRegistry.shared.getPlugin(ofType: FilterPlugin.self)
-        filterViewModel = filterPlugin?.viewModel
+        filterProvider = PluginRegistry.shared.getPluginConformingTo(HabitFilterProvider.self)
     }
     
     private func loadCategories() {
         availableCategories = CategoryModel.allCategories
     }
 
-    private func bindFilterUpdates() {
-        // handled via onReceive in body; kept for parity and future hooks
-    }
-
     private var filterChangePublisher: AnyPublisher<Void, Never> {
-        if let vm = filterViewModel {
-            return vm.objectWillChange
-                .map { _ in () }
-                .eraseToAnyPublisher()
-        } else {
-            return Empty(completeImmediately: false).eraseToAnyPublisher()
+        if let provider = filterProvider {
+            return provider.filterDidChange
         }
+        return Empty(completeImmediately: false).eraseToAnyPublisher()
     }
 }
 

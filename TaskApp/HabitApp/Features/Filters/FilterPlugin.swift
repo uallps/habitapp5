@@ -8,8 +8,9 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import Combine
 
-final class FilterPlugin: ViewPlugin {
+final class FilterPlugin: ViewPlugin, HabitFilterProvider {
     
     // MARK: - Propiedades de FeaturePlugin
     
@@ -32,6 +33,12 @@ final class FilterPlugin: ViewPlugin {
     private let config: AppConfig
     @MainActor private let filterViewModel: FilterViewModel = FilterViewModel()
     var viewModel: FilterViewModel { filterViewModel }
+
+    var filterDidChange: AnyPublisher<Void, Never> {
+        filterViewModel.objectWillChange
+            .map { _ in () }
+            .eraseToAnyPublisher()
+    }
     
     // MARK: - Inicialización
     
@@ -70,7 +77,7 @@ final class FilterPlugin: ViewPlugin {
     
     /// Provee la vista de filtros para mostrar en HabitListView
     @MainActor
-    func getFilterView(with categories: [CategoryModel]) -> AnyView {
+    func filterView(categories: [CategoryModel]) -> AnyView {
         guard isEnabled else { return AnyView(EmptyView()) }
         return AnyView(
             FilterView(viewModel: filterViewModel, availableCategories: categories)
