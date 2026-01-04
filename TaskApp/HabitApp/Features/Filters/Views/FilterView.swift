@@ -45,15 +45,13 @@ struct FilterView: View {
                     .foregroundStyle(.secondary)
                 
                 #if os(iOS)
-                SearchField(text: $viewModel.filterState.searchText) { newValue in
-                    viewModel.setSearchText(newValue)
-                }
+                SearchFieldView(viewModel: viewModel)
                 #else
-                TextField("Título o descripción...", text: $viewModel.filterState.searchText)
+                TextField("Título o descripción...", text: Binding(
+                    get: { viewModel.filterState.searchText },
+                    set: { viewModel.setSearchText($0) }
+                ))
                     .textFieldStyle(.roundedBorder)
-                    .onChange(of: viewModel.filterState.searchText) { _, newValue in
-                        viewModel.setSearchText(newValue)
-                    }
                 #endif
             }
             
@@ -95,8 +93,16 @@ struct FilterView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
-        .background(Color(uiColor: .secondarySystemGroupedBackground).opacity(0.5))
+        .background(backgroundColorForPlatform)
         .cornerRadius(12)
+    }
+    
+    private var backgroundColorForPlatform: Color {
+        #if os(iOS)
+        Color(uiColor: .secondarySystemGroupedBackground).opacity(0.5)
+        #else
+        Color.secondary.opacity(0.1)
+        #endif
     }
 }
 
@@ -134,7 +140,7 @@ private struct FlowLayout: Layout {
     func sizeThatFits(proposal: ProposedSize, subviews: Subviews, cache: inout ()) -> CGSize {
         guard !subviews.isEmpty else { return .zero }
         
-        let maxWidth = proposal.width ?? 300
+        let maxWidth = (proposal.width ?? 300)
         var width: CGFloat = 0
         var height: CGFloat = 0
         var lineHeight: CGFloat = 0
@@ -168,9 +174,10 @@ private struct FlowLayout: Layout {
                 x = bounds.minX
                 lineHeight = 0
             }
+            let proposedSize = ProposedSize(width: size.width, height: size.height)
             subview.place(
                 at: CGPoint(x: x, y: y),
-                proposal: ProposedSize(size)
+                proposal: proposedSize
             )
             x += size.width + spacing
             lineHeight = max(lineHeight, size.height)
@@ -178,25 +185,22 @@ private struct FlowLayout: Layout {
     }
 }
 
-private struct SearchField: View {
-    @Binding var text: String
-    let onChanged: (String) -> Void
+private struct SearchFieldView: View {
+    @ObservedObject var viewModel: FilterViewModel
     
     var body: some View {
-        #if os(iOS)
         HStack {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
             
-            TextField("Título o descripción...", text: $text)
-                .onChange(of: text) { _, newValue in
-                    onChanged(newValue)
-                }
+            TextField("Título o descripción...", text: Binding(
+                get: { viewModel.filterState.searchText },
+                set: { viewModel.setSearchText($0) }
+            ))
             
-            if !text.isEmpty {
+            if !viewModel.filterState.searchText.isEmpty {
                 Button {
-                    text = ""
-                    onChanged("")
+                    viewModel.setSearchText("")
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
@@ -206,9 +210,6 @@ private struct SearchField: View {
         .padding(8)
         .background(Color(uiColor: .tertiarySystemGroupedBackground))
         .cornerRadius(8)
-        #else
-        EmptyView()
-        #endif
     }
 }
 
