@@ -7,12 +7,16 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
     @State private var selectedHabitID: UUID?
     @State private var filterPlugin: FilterPlugin?
     @State private var availableCategories: [CategoryModel] = []
+    @State private var filterViewModel: FilterViewModel?
+    @State private var filterRefreshToggle = false
+    @ObservedObject private var pluginRegistry = PluginRegistry.shared
 
     init(storageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
@@ -36,7 +40,7 @@ struct HabitListView: View {
     private var content: some View {
         VStack(spacing: 0) {
             // Filtros
-            if let plugin = filterPlugin {
+            if let plugin = filterPlugin, plugin.isEnabled {
                 plugin.getFilterView(with: availableCategories)
             }
             
@@ -55,6 +59,7 @@ struct HabitListView: View {
                     }
                 }
             }
+            .id(filterRefreshToggle)
             .appListContainer()
         }
         .navigationTitle("Hábitos")
@@ -86,6 +91,14 @@ struct HabitListView: View {
             await viewModel.loadHabits()
             setupFilter()
             loadCategories()
+            bindFilterUpdates()
+        }
+        .onReceive(pluginRegistry.objectWillChange) { _ in
+            setupFilter()
+            bindFilterUpdates()
+        }
+        .onReceive(filterViewModel?.objectWillChange ?? Empty().eraseToAnyPublisher()) { _ in
+            filterRefreshToggle.toggle()
         }
     }
     
@@ -181,10 +194,15 @@ struct HabitListView: View {
     
     private func setupFilter() {
         filterPlugin = PluginRegistry.shared.getPlugin(ofType: FilterPlugin.self)
+        filterViewModel = filterPlugin?.viewModel
     }
     
     private func loadCategories() {
         availableCategories = CategoryModel.allCategories
+    }
+
+    private func bindFilterUpdates() {
+        // handled via onReceive in body; kept for parity and future hooks
     }
 }
 

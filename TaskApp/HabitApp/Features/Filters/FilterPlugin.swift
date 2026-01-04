@@ -31,6 +31,7 @@ final class FilterPlugin: ViewPlugin {
     
     private let config: AppConfig
     @MainActor private let filterViewModel: FilterViewModel = FilterViewModel()
+    var viewModel: FilterViewModel { filterViewModel }
     
     // MARK: - Inicialización
     
@@ -51,9 +52,9 @@ final class FilterPlugin: ViewPlugin {
     
     func settingsView() -> some View {
         Toggle(isOn: Binding(
-            get: { pluginEnabled },
+            get: { self.pluginEnabled },
             set: { newValue in
-                pluginEnabled = newValue
+                self.pluginEnabled = newValue
                 PluginRegistry.shared.pluginStateDidChange()
             }
         )) {
@@ -70,7 +71,8 @@ final class FilterPlugin: ViewPlugin {
     /// Provee la vista de filtros para mostrar en HabitListView
     @MainActor
     func getFilterView(with categories: [CategoryModel]) -> AnyView {
-        AnyView(
+        guard isEnabled else { return AnyView(EmptyView()) }
+        return AnyView(
             FilterView(viewModel: filterViewModel, availableCategories: categories)
         )
     }
@@ -78,6 +80,7 @@ final class FilterPlugin: ViewPlugin {
     /// Aplica el filtro a un array de hábitos
     @MainActor
     func applyFilter(to habits: [Habito]) -> [Habito] {
+        guard isEnabled else { return habits }
         return filterViewModel.filterHabits(habits)
     }
     

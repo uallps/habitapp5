@@ -16,7 +16,7 @@ struct FilterView: View {
     let availableCategories: [CategoryModel]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             // Encabezado
             HStack {
                 Image(systemName: "funnel")
@@ -91,17 +91,17 @@ struct FilterView: View {
             
             Spacer()
         }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(backgroundColorForPlatform)
-        .cornerRadius(12)
+        .cornerRadius(10)
     }
     
     private var backgroundColorForPlatform: Color {
         #if os(iOS)
-        Color(uiColor: .secondarySystemGroupedBackground).opacity(0.5)
+        Color(uiColor: .secondarySystemGroupedBackground).opacity(0.35)
         #else
-        Color.secondary.opacity(0.1)
+        Color.secondary.opacity(0.08)
         #endif
     }
 }
