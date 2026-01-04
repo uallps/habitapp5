@@ -14,6 +14,7 @@ struct DailyNoteView: View {
     @State private var selectedDate = Date()
     @State private var noteContent = ""
     @State private var isEditing = false
+        @State private var showHistory = false
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -106,9 +107,21 @@ struct DailyNoteView: View {
                 Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Notas recientes")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Text("Notas recientes")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                        
+                        Button {
+                            showHistory = true
+                        } label: {
+                            Label("Ver todo", systemImage: "list.bullet")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                     
                     ForEach(viewModel.getNotes(for: habit.id).prefix(5)) { note in
                         Button {
@@ -139,6 +152,9 @@ struct DailyNoteView: View {
             }
         }
         .onAppear {
+                    .sheet(isPresented: $showHistory) {
+                        NotesHistoryView(habit: habit)
+                    }
             loadNoteForSelectedDate()
         }
     }
