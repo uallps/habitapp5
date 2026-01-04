@@ -167,14 +167,33 @@ struct HabitGameProgress: Codable, Identifiable {
     }
 }
 
+// MARK: - Dragon Collection
+
+/// Información de un dragón adulto coleccionado
+struct CollectedDragon: Codable, Identifiable {
+    let id: Int // Índice del modelo de dragón (0-4)
+    let habitId: UUID // ID del hábito donde se descubrió
+    let habitNameAtDiscovery: String // Nombre del hábito en el momento del descubrimiento
+    let discoveredDate: Date
+    
+    init(dragonIndex: Int, habitId: UUID, habitName: String, discoveredDate: Date = Date()) {
+        self.id = dragonIndex
+        self.habitId = habitId
+        self.habitNameAtDiscovery = habitName
+        self.discoveredDate = discoveredDate
+    }
+}
+
 // MARK: - Game Data
 
 /// Datos completos del juego (contiene progresión de todos los hábitos)
 struct GameData: Codable {
     var habitProgresses: [UUID: HabitGameProgress]
+    var collectedDragons: [CollectedDragon] // Dragones adultos coleccionados
     
-    init(habitProgresses: [UUID: HabitGameProgress] = [:]) {
+    init(habitProgresses: [UUID: HabitGameProgress] = [:], collectedDragons: [CollectedDragon] = []) {
         self.habitProgresses = habitProgresses
+        self.collectedDragons = collectedDragons
     }
     
     mutating func getOrCreateProgress(for habitId: UUID) -> HabitGameProgress {
@@ -189,4 +208,20 @@ struct GameData: Codable {
     mutating func updateProgress(_ progress: HabitGameProgress) {
         habitProgresses[progress.id] = progress
     }
+    
+    /// Verifica si un dragón específico ya fue coleccionado
+    func isDragonCollected(_ dragonIndex: Int) -> Bool {
+        return collectedDragons.contains { $0.id == dragonIndex }
+    }
+    
+    /// Añade un dragón a la colección si no existe
+    mutating func collectDragon(dragonIndex: Int, habitId: UUID, habitName: String) {
+        if !isDragonCollected(dragonIndex) {
+            let dragon = CollectedDragon(dragonIndex: dragonIndex, habitId: habitId, habitName: habitName)
+            collectedDragons.append(dragon)
+        }
+    }
+    
+    /// Número total de dragones adultos únicos (siempre 5)
+    static let totalDragonVariants = 5
 }

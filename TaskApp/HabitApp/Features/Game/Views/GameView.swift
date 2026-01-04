@@ -31,6 +31,7 @@ struct GameView: View {
                         levelSection
                         dragonSpriteSection
                         shopSection
+                        dragonCollectionSection
                     }
                 }
                 .padding()
@@ -171,6 +172,48 @@ struct GameView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
     
+    private var dragonCollectionSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "book.fill")
+                    .foregroundStyle(.blue)
+                Text("Colección de Dragones")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                Text("\(viewModel.collectedDragonsCount)/\(viewModel.totalDragonsCount)")
+                    .font(.headline)
+                    .foregroundStyle(.blue)
+            }
+            
+            Text("Colecciona todos los dragones adultos únicos")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Divider()
+            
+            // Grid de dragones
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
+                ForEach(0..<GameData.totalDragonVariants, id: \.self) { index in
+                    DragonCollectionCard(
+                        dragonIndex: index,
+                        isCollected: viewModel.gameData.isDragonCollected(index),
+                        collectedDragon: viewModel.gameData.collectedDragons.first { $0.id == index },
+                        dragonArt: viewModel.getDragonModelByIndex(index),
+                        getDragonInfo: { dragon in
+                            viewModel.getDragonInfo(for: dragon)
+                        }
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(Color.blue.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    
     private var emptyStateView: some View {
         VStack(spacing: 16) {
             Image(systemName: "tray.fill")
@@ -219,6 +262,23 @@ struct ShopItemRow: View {
     let canPurchase: Bool
     let onPurchase: () -> Void
     
+    private var statusMessage: String? {
+        if isPurchased {
+            return nil
+        }
+        
+        if currentLevel < item.requiredLevel {
+            return "Nivel \(item.requiredLevel) requerido"
+        }
+        
+        // Si no puede comprar pero tiene el nivel, es por restricción secuencial
+        if !canPurchase && currentLevel >= item.requiredLevel {
+            return "Compra el objeto anterior primero"
+        }
+        
+        return nil
+    }
+    
     var body: some View {
         HStack(spacing: 12) {
             // Estado del item
@@ -241,6 +301,14 @@ struct ShopItemRow: View {
                             .font(.caption)
                             .foregroundStyle(.green)
                     }
+                }
+                
+                // Mensaje de estado adicional
+                if let message = statusMessage {
+                    Text(message)
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                        .padding(.top, 2)
                 }
             }
             
@@ -271,6 +339,96 @@ struct ShopItemRow: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(isPurchased ? Color.green.opacity(0.3) : Color.clear, lineWidth: 2)
+        )
+    }
+}
+
+// MARK: - Dragon Collection Card
+
+struct DragonCollectionCard: View {
+    let dragonIndex: Int
+    let isCollected: Bool
+    let collectedDragon: CollectedDragon?
+    let dragonArt: String
+    let getDragonInfo: (CollectedDragon) -> (habitName: String, habitExists: Bool)
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            // Arte del dragón
+            if isCollected {
+                Text(dragonArt)
+                    .font(.system(.caption, design: .monospaced))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, minHeight: 100)
+                    .background(Color.blue.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                // Dragón no descubierto - silueta
+                ZStack {
+                    Text(dragonArt)
+                        .font(.system(.caption, design: .monospaced))
+                        .blur(radius: 5)
+                        .opacity(0.3)
+                    
+                    Image(systemName: "questionmark")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, minHeight: 100)
+                .background(Color.gray.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            
+            // Información
+            VStack(spacing: 4) {
+                if isCollected, let dragon = collectedDragon {
+                    let info = getDragonInfo(dragon)
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .font(.caption2)
+                        Text("Dragón #\(dragonIndex + 1)")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Text("Descubierto en:")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    
+                    HStack(spacing: 4) {
+                        Text(info.habitName)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                        
+                        if !info.habitExists {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .help("Este hábito ya no existe")
+                        }
+                    }
+                } else {
+                    Text("???")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    
+                    Text("Por descubrir")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding()
+        .background(isCollected ? Color.green.opacity(0.05) : Color.gray.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isCollected ? Color.green.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 2)
         )
     }
 }
