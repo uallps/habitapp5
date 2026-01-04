@@ -39,11 +39,33 @@ final class SwiftDataRutinaStorageProvider: RutinaStorageProvider {
     }
     
     func saveRutinas(rutinas: [Rutina]) async throws {
-        // Para SwiftData, insertamos solo las que no existen
+        let existingRutinas = try context.fetch(FetchDescriptor<Rutina>())
+        let desiredIds = Set(rutinas.map { $0.id })
+        var existingById: [UUID: Rutina] = Dictionary(
+            uniqueKeysWithValues: existingRutinas.map { ($0.id, $0) }
+        )
+
+        // Eliminar las rutinas que ya no están en la lista
+        for existing in existingRutinas where !desiredIds.contains(existing.id) {
+            context.delete(existing)
+        }
+
+        // Insertar o actualizar
         for rutina in rutinas {
-            let existing = try await loadRutina(for: rutina.id)
-            if existing == nil {
+            if let existing = existingById[rutina.id] {
+                // Si por algún motivo viene otra instancia, sincronizar campos
+                if existing !== rutina {
+                    existing.nombre = rutina.nombre
+                    existing.descripcion = rutina.descripcion
+                    existing.habitoIds = rutina.habitoIds
+                    existing.color = rutina.color
+                    existing.isActiva = rutina.isActiva
+                    existing.fechaCreacion = rutina.fechaCreacion
+                    existing.ordenEjecucion = rutina.ordenEjecucion
+                }
+            } else {
                 context.insert(rutina)
+                existingById[rutina.id] = rutina
             }
         }
         try context.save()
@@ -67,7 +89,11 @@ final class SwiftDataRutinaStorageProvider: RutinaStorageProvider {
     }
     
     func deleteRutina(_ rutina: Rutina) async throws {
-        context.delete(rutina)
+        if let existing = try await loadRutina(for: rutina.id) {
+            context.delete(existing)
+        } else {
+            context.delete(rutina)
+        }
         try context.save()
         print("Rutina eliminada de SwiftData")
     }

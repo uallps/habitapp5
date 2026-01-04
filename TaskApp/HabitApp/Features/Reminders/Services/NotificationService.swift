@@ -41,12 +41,8 @@ class NotificationService {
         
         // Crear el contenido de la notificación
         let content = UNMutableNotificationContent()
-        content.title = "Recordatorio de Hábito"
+        content.title = "Recordatorio de hábito"
         content.body = habit.title
-        
-        if let descripcion = habit.descripcion, !descripcion.isEmpty {
-            content.subtitle = descripcion
-        }
         
         content.sound = .default
         content.badge = 1

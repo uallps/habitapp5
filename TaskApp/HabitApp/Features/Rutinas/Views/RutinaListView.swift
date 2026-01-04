@@ -47,13 +47,7 @@ private struct RutinaListContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                if viewModel.rutinas.isEmpty {
-                    ContentUnavailableView(
-                        "No hay rutinas",
-                        systemImage: "list.bullet.circle",
-                        description: Text("Crea una rutina para agrupar tus hábitos")
-                    )
-                } else {
+                if !viewModel.rutinas.isEmpty {
                     ForEach(viewModel.rutinas) { rutina in
                         NavigationLink(destination: RutinaDetailView(
                             rutina: binding(for: rutina),
@@ -129,6 +123,16 @@ private struct RutinaListContentView: View {
                             await loadHabitCounts()
                         }
                     }
+                }
+            }
+            .overlay {
+                if viewModel.rutinas.isEmpty {
+                    ContentUnavailableView(
+                        "No hay rutinas",
+                        systemImage: "list.bullet.circle",
+                        description: Text("Crea una rutina para agrupar tus hábitos")
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .appListContainer()
