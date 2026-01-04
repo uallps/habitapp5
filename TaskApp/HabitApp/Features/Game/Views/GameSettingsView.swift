@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GameSettingsView: View {
-    @State private var isEnabled = GamePlugin.shared.isEnabled
+    @AppStorage("plugin.game.enabled") private var isEnabled = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -24,7 +24,10 @@ struct GameSettingsView: View {
                 }
             }
             .onChange(of: isEnabled) { _, newValue in
-                GamePlugin.shared.isEnabled = newValue
+                // Notificar al registry para actualizar la UI
+                Task { @MainActor in
+                    PluginRegistry.shared.pluginStateDidChange()
+                }
             }
             
             if isEnabled {
