@@ -40,14 +40,18 @@ struct HabitListView: View {
                 plugin.getFilterView(with: availableCategories)
             }
             
-            // Lista de hábitos
+            // Lista de hábitos filtrados
             List {
-                ForEach($viewModel.habitos) { $habit in
+                ForEach(filteredHabits, id: \Habito.id) { habit in
                     habitRow(habit: habit)
                 }
                 .onDelete { indexSet in
+                    let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
+                    let originalOffsets = IndexSet(ids.compactMap { id in
+                        viewModel.habitos.firstIndex(where: { $0.id == id })
+                    })
                     _Concurrency.Task {
-                        await viewModel.removeHabits(atOffsets: indexSet)
+                        await viewModel.removeHabits(atOffsets: originalOffsets)
                     }
                 }
             }
@@ -181,6 +185,13 @@ struct HabitListView: View {
     
     private func loadCategories() {
         availableCategories = CategoryModel.allCategories
+    }
+}
+
+// MARK: - Safe collection access
+private extension Collection {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 
