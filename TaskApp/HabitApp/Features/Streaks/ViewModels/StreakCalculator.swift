@@ -74,21 +74,31 @@ struct StreakCalculator {
         // 2. Calcular racha ACTUAL (desde hoy hacia atrás, se detiene en el primer incompleto)
         var currentStreak = 0
         var foundIncomplete = false
+        var isFirstDate = true // Para identificar si estamos en la fecha más reciente (hoy)
         
         for expectedDate in expectedDates.reversed() {
             let isCompleted = completedDatesSet.contains(expectedDate)
+            let isToday = calendar.isDate(expectedDate, inSameDayAs: today)
             
             if isCompleted && !foundIncomplete {
-                // Seguimos contando la racha actual
+                // Día completado: seguimos contando la racha actual
                 currentStreak += 1
             } else if !isCompleted {
-                // Encontramos un día esperado NO completado
-                if !foundIncomplete {
-                    print("🔴 [StreakCalculator] Racha actual rota en: \(expectedDate.formatted(date: .abbreviated, time: .omitted))")
-                    foundIncomplete = true
+                // Día NO completado
+                if isToday {
+                    // EXCEPCIÓN: Si es HOY, no rompemos la racha pero tampoco sumamos
+                    print("⚠️ [StreakCalculator] Hoy está esperado pero no completado (no rompe racha)")
+                } else {
+                    // Cualquier otro día pasado esperado y no completado SÍ rompe la racha
+                    if !foundIncomplete {
+                        print("🔴 [StreakCalculator] Racha actual rota en: \(expectedDate.formatted(date: .abbreviated, time: .omitted))")
+                        foundIncomplete = true
+                    }
+                    // Ya no incrementamos currentStreak nunca más
                 }
-                // Ya no incrementamos currentStreak nunca más
             }
+            
+            isFirstDate = false
         }
         
         // 3. Calcular racha MÁXIMA (mejor secuencia en todo el historial)
