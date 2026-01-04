@@ -26,20 +26,31 @@ struct StreakCalculator {
         
         print("🔥 [StreakCalculator] INICIANDO CÁLCULO para '\(habit.title)'")
         
-        // Validaciones básicas
-        guard let startDate = habit.fechaInicio else {
-            print("⚠️ [StreakCalculator] Sin fecha de inicio")
+        // Validación: necesitamos al menos una fecha de completitud
+        guard !habit.fechaCompletitud.isEmpty else {
+            print("⚠️ [StreakCalculator] Sin fechas de completitud registradas")
             return StreakData(currentStreak: 0, longestStreak: 0, lastCompletionDate: nil)
         }
         
-        // 1. Generar todas las fechas esperadas desde el inicio hasta hoy (INCLUSIVE)
-        var expectedDates: [Date] = []
-        var currentDate = calendar.startOfDay(for: startDate)
-        let endDate = today
+        // Normalizar fechas de completitud
+        let completedDatesSet = Set(habit.fechaCompletitud.map { calendar.startOfDay(for: $0) })
+        print("✅ [StreakCalculator] Fechas completadas: \(completedDatesSet.count)")
+        
+        // Usar la fecha de completitud más antigua como punto de inicio
+        guard let oldestCompletion = completedDatesSet.min() else {
+            print("⚠️ [StreakCalculator] No se pudo determinar fecha más antigua")
+            return StreakData(currentStreak: 0, longestStreak: 0, lastCompletionDate: nil)
+        }
+        
+        let startDate = oldestCompletion
         
         print("📅 [StreakCalculator] Rango: \(startDate.formatted(date: .abbreviated, time: .omitted)) -> \(today.formatted(date: .abbreviated, time: .omitted))")
         
-        while currentDate <= endDate {
+        // 1. Generar todas las fechas esperadas desde el inicio hasta hoy (INCLUSIVE)
+        var expectedDates: [Date] = []
+        var currentDate = startDate
+        
+        while currentDate <= today {
             if habit.debeRealizarse(en: currentDate) {
                 expectedDates.append(currentDate)
             }
@@ -53,12 +64,7 @@ struct StreakCalculator {
         
         print("📊 [StreakCalculator] Total fechas esperadas: \(expectedDates.count)")
         
-        // Normalizar fechas de completitud para comparación
-        let completedDatesSet = Set(habit.fechaCompletitud.map { calendar.startOfDay(for: $0) })
-        
-        print("✅ [StreakCalculator] Fechas completadas: \(completedDatesSet.count)")
-        
-        // 2. Calcular racha actual (desde el más reciente hacia atrás)
+        // 2. Calcular racha actual (desde hoy hacia atrás)
         var currentStreak = 0
         var longestStreak = 0
         var tempStreak = 0
@@ -70,43 +76,38 @@ struct StreakCalculator {
             print("  \(completed) \(date.formatted(date: .abbreviated, time: .omitted))")
         }
         
-        // Recorrer fechas esperadas en orden descendente (más reciente primero)
-        var foundIncomplete = false
-        
+        // Recorrer fechas esperadas desde hoy hacia atrás
         for expectedDate in expectedDates.reversed() {
             let isCompleted = completedDatesSet.contains(expectedDate)
             
             if isCompleted {
-                // Fecha completada
                 tempStreak += 1
-                
-                // Solo incrementar currentStreak si no hemos encontrado ninguna fecha incompleta
-                if !foundIncomplete {
-                    currentStreak += 1
+                // Solo seguimos contando la racha actual si no se ha roto
+                if currentStreak == 0 || tempStreak == currentStreak + 1 {
+                    currentStreak = tempStreak
                 }
             } else {
-                // Fecha NO completada que se esperaba
-                // Si aún no habíamos encontrado ninguna incompleta, marcar que la racha actual termina
-                if !foundIncomplete {
-                    foundIncomplete = true
-                    print("🔴 [StreakCalculator] Racha rota en: \(expectedDate.formatted(date: .abbreviated, time: .omitted))")
+                // Si encontramos una fecha incompleta y ya teníamos una racha actual,
+                // significa que la racha actual se ha roto
+                if currentStreak > 0 {
+                    print("🔴 [StreakCalculator] Racha actual rota en: \(expectedDate.formatted(date: .abbreviated, time: .omitted))")
+                    // Ya no incrementamos currentStreak, pero seguimos buscando la mejor racha
                 }
                 
-                // Resetear la racha temporal
+                // Actualizar mejor racha antes de resetear
+                longestStreak = max(longestStreak, tempStreak)
                 tempStreak = 0
             }
-            
-            // Actualizar mejor racha
-            longestStreak = max(longestStreak, tempStreak)
         }
         
-        // Asegurar que longest >= current
+        // Actualizar mejor racha al final
+        longestStreak = max(longestStreak, tempStreak)
         longestStreak = max(longestStreak, currentStreak)
         
         print("🔥 [StreakCalculator] RESULTADO: current=\(currentStreak), longest=\(longestStreak)")
         
         // 3. Obtener la última fecha de completitud
-        let lastCompletion = habit.fechaCompletitud.max()
+        let lastCompletion = completedDatesSet.max()
         
         return StreakData(
             currentStreak: currentStreak,
