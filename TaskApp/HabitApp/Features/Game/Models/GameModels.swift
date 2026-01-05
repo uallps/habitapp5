@@ -140,12 +140,13 @@ enum DragonSpriteType: String, Codable {
 struct HabitGameProgress: Codable, Identifiable {
     let id: UUID // ID del hábito
     var purchasedItemIds: [String]
-    var dragonSeed: Int // Semilla para mantener el mismo dragón adulto
+    var dragonIndex: Int // Índice directo del dragón adulto (0-4)
     
-    init(habitId: UUID, purchasedItemIds: [String] = [], dragonSeed: Int = Int.random(in: 0...99999)) {
+    init(habitId: UUID, purchasedItemIds: [String] = [], dragonIndex: Int? = nil) {
         self.id = habitId
         self.purchasedItemIds = purchasedItemIds
-        self.dragonSeed = dragonSeed
+        // Generar un índice aleatorio entre 0 y 4 directamente
+        self.dragonIndex = dragonIndex ?? Int.random(in: 0...4)
     }
     
     /// Obtiene el sprite actual basado en los objetos comprados
