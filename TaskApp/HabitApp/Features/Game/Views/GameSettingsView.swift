@@ -40,6 +40,9 @@ struct GameSettingsView: View {
                     .foregroundColor(.secondary)
             }
         }
+        .padding()
+        .background(Color.secondary.opacity(0.05))
+        .cornerRadius(8)
     }
 }
 
