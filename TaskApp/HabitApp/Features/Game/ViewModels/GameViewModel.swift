@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import Combine
 
 @MainActor
@@ -22,7 +23,8 @@ final class GameViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let storageProvider: StorageProvider
-    private let gameStorageService = GameStorageService.shared
+    private var gameStorageService: GameStorageService
+    private let appConfig: AppConfig
     
     // MARK: - Computed Properties
     
@@ -48,11 +50,10 @@ final class GameViewModel: ObservableObject {
     var currentAsciiArt: String {
         let sprite = currentSprite
         
-        // Si es dragón adulto, usar la semilla para mantener consistencia
+        // Si es dragón adulto, usar el índice directo del dragón
         if sprite == .adultDragon, let progress = currentProgress {
             let models = getDragonModels()
-            let index = progress.dragonSeed % models.count
-            return models[index]
+            return models[progress.dragonIndex]
         }
         
         return sprite.asciiArt
@@ -63,7 +64,7 @@ final class GameViewModel: ObservableObject {
         guard currentSprite == .adultDragon, let progress = currentProgress else {
             return nil
         }
-        return progress.dragonSeed % 5
+        return progress.dragonIndex
     }
     
     var availableItems: [ShopItem] {
@@ -80,8 +81,14 @@ final class GameViewModel: ObservableObject {
     
     // MARK: - Initialization
     
-    init(storageProvider: StorageProvider) {
+    init(storageProvider: StorageProvider, appConfig: AppConfig) {
         self.storageProvider = storageProvider
+        self.appConfig = appConfig
+        
+        // Inicializar el servicio de almacenamiento según la configuración
+        let storageType: GameStorageType = (appConfig.storageType == .swiftData) ? .swiftData : .json
+        self.gameStorageService = GameStorageService(storageType: storageType)
+        
         Task {
             await loadGameData()
             await loadHabitos()
@@ -307,9 +314,8 @@ final class GameViewModel: ObservableObject {
         
         // Si ahora es dragón adulto y antes no lo era, añadirlo a la colección
         if progress.currentSprite == .adultDragon && !wasAdultDragonBefore {
-            let dragonIndex = progress.dragonSeed % 5
-            gameData.collectDragon(dragonIndex: dragonIndex, habitId: habitId, habitName: habito.title)
-            print("🐉 [GameViewModel] New dragon collected! Index: \(dragonIndex)")
+            gameData.collectDragon(dragonIndex: progress.dragonIndex, habitId: habitId, habitName: habito.title)
+            print("🐉 [GameViewModel] New dragon collected! Index: \(progress.dragonIndex)")
         }
         
         // Guardar

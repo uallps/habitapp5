@@ -11,8 +11,8 @@ struct GameView: View {
     @StateObject private var viewModel: GameViewModel
     @EnvironmentObject var appConfig: AppConfig
     
-    init(storageProvider: StorageProvider) {
-        _viewModel = StateObject(wrappedValue: GameViewModel(storageProvider: storageProvider))
+    init(storageProvider: StorageProvider, appConfig: AppConfig) {
+        _viewModel = StateObject(wrappedValue: GameViewModel(storageProvider: storageProvider, appConfig: appConfig))
     }
     
     var body: some View {
@@ -45,6 +45,7 @@ struct GameView: View {
                 // Esto mantiene la lista actualizada con hábitos creados/eliminados
                 await viewModel.reloadHabitos()
             }
+            .id(appConfig.storageType) // Forzar recreación cuando cambia el tipo de almacenamiento
         }
     }
     
@@ -443,6 +444,7 @@ struct DragonCollectionCard: View {
 // MARK: - Preview
 
 #Preview {
-    GameView(storageProvider: MockStorageProvider())
-        .environmentObject(AppConfig())
+    let config = AppConfig()
+    return GameView(storageProvider: MockStorageProvider(), appConfig: config)
+        .environmentObject(config)
 }

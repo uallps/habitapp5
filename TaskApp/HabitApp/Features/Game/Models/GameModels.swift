@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import SwiftData
 
 // MARK: - Shop Item
@@ -139,12 +140,13 @@ enum DragonSpriteType: String, Codable {
 struct HabitGameProgress: Codable, Identifiable {
     let id: UUID // ID del hábito
     var purchasedItemIds: [String]
-    var dragonSeed: Int // Semilla para mantener el mismo dragón adulto
+    var dragonIndex: Int // Índice directo del dragón adulto (0-4)
     
-    init(habitId: UUID, purchasedItemIds: [String] = [], dragonSeed: Int = Int.random(in: 0...99999)) {
+    init(habitId: UUID, purchasedItemIds: [String] = [], dragonIndex: Int? = nil) {
         self.id = habitId
         self.purchasedItemIds = purchasedItemIds
-        self.dragonSeed = dragonSeed
+        // Generar un índice aleatorio entre 0 y 4 directamente
+        self.dragonIndex = dragonIndex ?? Int.random(in: 0...4)
     }
     
     /// Obtiene el sprite actual basado en los objetos comprados
@@ -225,3 +227,60 @@ struct GameData: Codable {
     /// Número total de dragones adultos únicos (siempre 5)
     static let totalDragonVariants = 5
 }
+
+// MARK: - SwiftData Models
+
+/// Modelo de SwiftData para almacenar los datos completos del juego
+@Model
+final class GameDataModel {
+    var habitProgressesData: Data  // JSON codificado de [UUID: HabitGameProgress]
+    var collectedDragonsData: Data  // JSON codificado de [CollectedDragon]
+    var lastUpdated: Date
+    
+    init(habitProgressesData: Data = Data(), collectedDragonsData: Data = Data()) {
+        self.habitProgressesData = habitProgressesData
+        self.collectedDragonsData = collectedDragonsData
+        self.lastUpdated = Date()
+    }
+    
+    /// Convierte el modelo SwiftData a GameData
+    func toGameData() throws -> GameData {
+        let decoder = JSONDecoder()
+        
+        let habitProgresses: [UUID: HabitGameProgress]
+        if habitProgressesData.isEmpty {
+            habitProgresses = [:]
+        } else {
+            // Decodificar como array de tuplas y convertir a diccionario
+            let progressArray = try decoder.decode([[String: HabitGameProgress]].self, from: habitProgressesData)
+            habitProgresses = Dictionary(uniqueKeysWithValues: progressArray.compactMap { dict in
+                guard let (key, value) = dict.first,
+                      let uuid = UUID(uuidString: key) else { return nil }
+                return (uuid, value)
+            })
+        }
+        
+        let collectedDragons: [CollectedDragon]
+        if collectedDragonsData.isEmpty {
+            collectedDragons = []
+        } else {
+            collectedDragons = try decoder.decode([CollectedDragon].self, from: collectedDragonsData)
+        }
+        
+        return GameData(habitProgresses: habitProgresses, collectedDragons: collectedDragons)
+    }
+    
+    /// Actualiza el modelo SwiftData desde GameData
+    func update(from gameData: GameData) throws {
+        let encoder = JSONEncoder()
+        
+        // Convertir el diccionario a array de diccionarios para codificación
+        let progressArray = gameData.habitProgresses.map { key, value in
+            [key.uuidString: value]
+        }
+        self.habitProgressesData = try encoder.encode(progressArray)
+        self.collectedDragonsData = try encoder.encode(gameData.collectedDragons)
+        self.lastUpdated = Date()
+    }
+}
+

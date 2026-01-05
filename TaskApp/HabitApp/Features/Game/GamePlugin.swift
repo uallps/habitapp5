@@ -17,7 +17,7 @@ final class GamePlugin: ViewPlugin {
     let name = "Juego"
     
     var models: [any PersistentModel.Type] {
-        return [] // TODO: Agregar modelos cuando se implementen
+        return [GameDataModel.self]
     }
     
     // El plugin gestiona su propio estado de habilitación
@@ -57,7 +57,7 @@ final class GamePlugin: ViewPlugin {
     
     func mainNavigationView() -> (title: String, view: AnyView)? {
         return ("Juego", AnyView(
-            GameView(storageProvider: config.storageProvider)
+            GameView(storageProvider: config.storageProvider, appConfig: config)
                 .environmentObject(config)
         ))
     }
