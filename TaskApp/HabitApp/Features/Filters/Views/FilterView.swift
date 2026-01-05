@@ -47,11 +47,26 @@ struct FilterView: View {
                 #if os(iOS)
                 SearchFieldView(viewModel: viewModel)
                 #else
-                TextField("Título o descripción...", text: Binding(
-                    get: { viewModel.filterState.searchText },
-                    set: { viewModel.setSearchText($0) }
-                ))
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    
+                    TextField("Título o descripción...", text: Binding(
+                        get: { viewModel.filterState.searchText },
+                        set: { viewModel.setSearchText($0) }
+                    ))
                     .textFieldStyle(.roundedBorder)
+                    
+                    if !viewModel.filterState.searchText.isEmpty {
+                        Button {
+                            viewModel.setSearchText("")
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
                 #endif
             }
             

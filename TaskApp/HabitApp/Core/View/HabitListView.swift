@@ -27,38 +27,45 @@ struct HabitListView: View {
     }
     
     var body: some View {
-        List {
-            // Filtro como header en la lista
+        #if os(iOS)
+        NavigationStack {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+
+    private var content: some View {
+        VStack(spacing: 0) {
+            // Filtro completamente fuera de la List
             if let provider = filterProvider, provider.isEnabled {
-                Section {
-                    EmptyView()
-                } header: {
+                ScrollView {
                     provider.filterView(categories: availableCategories)
-                        .padding(.top, 16)
-                        .padding(.bottom, 8)
-                        .cornerRadius(12)
-                        .textCase(nil)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+                .frame(maxHeight: 250)
             }
             
             // Lista de hábitos
-            ForEach(filteredHabits, id: \Habito.id) { habit in
-                habitRow(habit: habit)
-            }
-            .onDelete { indexSet in
-                let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
-                let originalOffsets = IndexSet(ids.compactMap { id in
-                    viewModel.habitos.firstIndex(where: { $0.id == id })
-                })
-                _Concurrency.Task {
-                    await viewModel.removeHabits(atOffsets: originalOffsets)
+            List {
+                ForEach(filteredHabits, id: \Habito.id) { habit in
+                    habitRow(habit: habit)
+                }
+                .onDelete { indexSet in
+                    let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
+                    let originalOffsets = IndexSet(ids.compactMap { id in
+                        viewModel.habitos.firstIndex(where: { $0.id == id })
+                    })
+                    _Concurrency.Task {
+                        await viewModel.removeHabits(atOffsets: originalOffsets)
+                    }
                 }
             }
+            .id(filterRefreshToggle)
+            .appListContainer()
         }
-        .id(filterRefreshToggle)
-        .appListContainer()
         .navigationTitle("Hábitos")
         .navigationDestination(isPresented: Binding(
             get: { selectedHabitID != nil },
