@@ -27,17 +27,23 @@ struct HabitListView: View {
     }
     
     var body: some View {
-        #if os(iOS)
-        NavigationStack {
-            content
-        }
-        #else
-        content
-        #endif
-    }
-
-    private var content: some View {
         List {
+            // Filtro como header en la lista
+            if let provider = filterProvider, provider.isEnabled {
+                Section {
+                    EmptyView()
+                } header: {
+                    provider.filterView(categories: availableCategories)
+                        .padding(.top, 16)
+                        .padding(.bottom, 8)
+                        .cornerRadius(12)
+                        .textCase(nil)
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+            
+            // Lista de hábitos
             ForEach(filteredHabits, id: \Habito.id) { habit in
                 habitRow(habit: habit)
             }
@@ -53,13 +59,6 @@ struct HabitListView: View {
         }
         .id(filterRefreshToggle)
         .appListContainer()
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if let provider = filterProvider, provider.isEnabled {
-                provider.filterView(categories: availableCategories)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 6)
-            }
-        }
         .navigationTitle("Hábitos")
         .navigationDestination(isPresented: Binding(
             get: { selectedHabitID != nil },
@@ -92,6 +91,7 @@ struct HabitListView: View {
         }
         .onReceive(pluginRegistry.objectWillChange) { _ in
             setupFilter()
+            filterRefreshToggle.toggle()
         }
         .onReceive(filterChangePublisher) { _ in
             filterRefreshToggle.toggle()
