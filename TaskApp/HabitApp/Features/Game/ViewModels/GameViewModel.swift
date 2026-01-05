@@ -94,22 +94,6 @@ final class GameViewModel: ObservableObject {
             await loadGameData()
             await loadHabitos()
         }
-        
-        // Observar cambios en el tipo de almacenamiento
-        appConfig.$storageType
-            .sink { [weak self] newStorageType in
-                guard let self = self else { return }
-                Task { @MainActor in
-                    // Recrear el servicio de almacenamiento con el nuevo tipo
-                    let gameStorageType: GameStorageType = (newStorageType == .swiftData) ? .swiftData : .json
-                    self.gameStorageService = GameStorageService(storageType: gameStorageType)
-                    
-                    // Recargar datos del nuevo almacenamiento
-                    await self.loadGameData()
-                    await self.loadHabitos()
-                }
-            }
-            .store(in: &cancellables)
     }
     
     // MARK: - Helper Methods

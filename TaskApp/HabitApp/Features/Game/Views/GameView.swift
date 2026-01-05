@@ -45,6 +45,7 @@ struct GameView: View {
                 // Esto mantiene la lista actualizada con hábitos creados/eliminados
                 await viewModel.reloadHabitos()
             }
+            .id(appConfig.storageType) // Forzar recreación cuando cambia el tipo de almacenamiento
         }
     }
     
