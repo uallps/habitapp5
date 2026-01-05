@@ -1,14 +1,14 @@
 //
-//  GameSettingsView.swift
+//  FilterSettingsView.swift
 //  HabitApp
 //
-//  Vista de configuración del plugin de gamificación
+//  Vista de configuración del plugin de filtros
 //
 
 import SwiftUI
 
-struct GameSettingsView: View {
-    @AppStorage("plugin.game.enabled") private var isEnabled = false
+struct FilterSettingsView: View {
+    @AppStorage("plugin.filter.enabled") private var isEnabled = true
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -21,21 +21,21 @@ struct GameSettingsView: View {
                     PluginRegistry.shared.pluginStateDidChange()
                 }
             )) {
-                Label("Plugin de Gamificación", systemImage: "gamecontroller.fill")
+                Label("Plugin de Filtros", systemImage: "line.3.horizontal.decrease.circle")
                     .font(.headline)
             }
             
-            Text("Activa mecánicas de juego como puntos, niveles y logros")
+            Text("Permite filtrar hábitos por categoría, prioridad, frecuencia y búsqueda")
                 .font(.caption)
                 .foregroundColor(.secondary)
             
             Divider()
             
             HStack {
-                Text("Estado:")
+                Text("Filtros disponibles:")
                     .font(.caption)
                 Spacer()
-                Text(isEnabled ? "Activo" : "Inactivo")
+                Text("4")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -49,5 +49,5 @@ struct GameSettingsView: View {
 // MARK: - Preview
 
 #Preview {
-    GameSettingsView()
+    FilterSettingsView()
 }

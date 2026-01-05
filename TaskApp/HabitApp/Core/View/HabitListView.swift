@@ -7,13 +7,23 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
     @State private var selectedHabitID: UUID?
+    @State private var filterProvider: HabitFilterProvider?
+    @State private var availableCategories: [CategoryModel] = []
+    @State private var filterRefreshToggle = false
+    @ObservedObject private var pluginRegistry = PluginRegistry.shared
 
     init(storageProvider: StorageProvider) {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
+    }
+    
+    private var filteredHabits: [Habito] {
+        guard let provider = filterProvider, provider.isEnabled else { return viewModel.habitos }
+        return provider.applyFilter(to: viewModel.habitos)
     }
     
     var body: some View {
@@ -28,16 +38,28 @@ struct HabitListView: View {
 
     private var content: some View {
         List {
-            ForEach($viewModel.habitos) { $habit in
+            ForEach(filteredHabits, id: \Habito.id) { habit in
                 habitRow(habit: habit)
             }
             .onDelete { indexSet in
+                let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
+                let originalOffsets = IndexSet(ids.compactMap { id in
+                    viewModel.habitos.firstIndex(where: { $0.id == id })
+                })
                 _Concurrency.Task {
-                    await viewModel.removeHabits(atOffsets: indexSet)
+                    await viewModel.removeHabits(atOffsets: originalOffsets)
                 }
             }
         }
+        .id(filterRefreshToggle)
         .appListContainer()
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if let provider = filterProvider, provider.isEnabled {
+                provider.filterView(categories: availableCategories)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
+            }
+        }
         .navigationTitle("Hábitos")
         .navigationDestination(isPresented: Binding(
             get: { selectedHabitID != nil },
@@ -65,19 +87,29 @@ struct HabitListView: View {
         }
         .task {
             await viewModel.loadHabits()
+            setupFilter()
+            loadCategories()
+        }
+        .onReceive(pluginRegistry.objectWillChange) { _ in
+            setupFilter()
+        }
+        .onReceive(filterChangePublisher) { _ in
+            filterRefreshToggle.toggle()
         }
     }
     
     @ViewBuilder
     private func habitRow(habit: Habito) -> some View {
-        Button {
-            selectedHabitID = habit.id
-        } label: {
-            HabitRowView(habit: habit, toggleCompletion: {
-                _Concurrency.Task {
-                    await viewModel.toggleCompletion(task: habit)
-                }
-            })
+        // Solo mostrar si pasa el filtro
+        if filteredHabits.contains(where: { $0.id == habit.id }) {
+            Button {
+                selectedHabitID = habit.id
+            } label: {
+                HabitRowView(habit: habit, toggleCompletion: {
+                    _Concurrency.Task {
+                        await viewModel.toggleCompletion(task: habit)
+                    }
+                })
             .appCard(padding: 14)
             .overlay(alignment: .bottomTrailing) {
                 statusBadge(for: habit)
@@ -92,6 +124,7 @@ struct HabitListView: View {
             }
         }
         .appListRowCard()
+        }
     }
 
     @ViewBuilder
@@ -151,6 +184,30 @@ struct HabitListView: View {
         _Concurrency.Task {
             await viewModel.saveHabits()
         }
+    }
+    
+    // MARK: - Filter Setup
+    
+    private func setupFilter() {
+        filterProvider = PluginRegistry.shared.getPluginConformingTo(HabitFilterProvider.self)
+    }
+    
+    private func loadCategories() {
+        availableCategories = CategoryModel.allCategories
+    }
+
+    private var filterChangePublisher: AnyPublisher<Void, Never> {
+        if let provider = filterProvider {
+            return provider.filterDidChange
+        }
+        return Empty(completeImmediately: false).eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Safe collection access
+private extension Collection {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 
