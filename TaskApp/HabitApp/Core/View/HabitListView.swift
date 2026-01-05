@@ -90,7 +90,6 @@ struct HabitListView: View {
             await viewModel.loadHabits()
             setupFilter()
             loadCategories()
-            bindFilterUpdates()
         }
         .onReceive(pluginRegistry.objectWillChange) { _ in
             setupFilter()
