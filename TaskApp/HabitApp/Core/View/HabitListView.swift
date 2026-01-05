@@ -37,29 +37,28 @@ struct HabitListView: View {
     }
 
     private var content: some View {
-        VStack(spacing: 0) {
-            // Filtros
+        List {
+            ForEach(filteredHabits, id: \Habito.id) { habit in
+                habitRow(habit: habit)
+            }
+            .onDelete { indexSet in
+                let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
+                let originalOffsets = IndexSet(ids.compactMap { id in
+                    viewModel.habitos.firstIndex(where: { $0.id == id })
+                })
+                _Concurrency.Task {
+                    await viewModel.removeHabits(atOffsets: originalOffsets)
+                }
+            }
+        }
+        .id(filterRefreshToggle)
+        .appListContainer()
+        .safeAreaInset(edge: .top, spacing: 0) {
             if let provider = filterProvider, provider.isEnabled {
                 provider.filterView(categories: availableCategories)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
             }
-            
-            // Lista de hábitos filtrados
-            List {
-                ForEach(filteredHabits, id: \Habito.id) { habit in
-                    habitRow(habit: habit)
-                }
-                .onDelete { indexSet in
-                    let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
-                    let originalOffsets = IndexSet(ids.compactMap { id in
-                        viewModel.habitos.firstIndex(where: { $0.id == id })
-                    })
-                    _Concurrency.Task {
-                        await viewModel.removeHabits(atOffsets: originalOffsets)
-                    }
-                }
-            }
-            .id(filterRefreshToggle)
-            .appListContainer()
         }
         .navigationTitle("Hábitos")
         .navigationDestination(isPresented: Binding(
