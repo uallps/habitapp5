@@ -71,6 +71,30 @@ class FilterViewModel: ObservableObject {
         }
     }
     
+    /// Alternar selección de una prioridad
+    func togglePriority(_ priority: Prioridad) {
+        if filterState.selectedPriorities.contains(priority) {
+            filterState.selectedPriorities.remove(priority)
+        } else {
+            filterState.selectedPriorities.insert(priority)
+        }
+        Task {
+            await saveFilterState()
+        }
+    }
+    
+    /// Alternar selección de una frecuencia
+    func toggleFrequency(_ frequency: TipoFrecuencia) {
+        if filterState.selectedFrequencies.contains(frequency) {
+            filterState.selectedFrequencies.remove(frequency)
+        } else {
+            filterState.selectedFrequencies.insert(frequency)
+        }
+        Task {
+            await saveFilterState()
+        }
+    }
+    
     /// Establecer texto de búsqueda
     func setSearchText(_ text: String) {
         filterState.searchText = text
@@ -97,6 +121,26 @@ class FilterViewModel: ObservableObject {
                 guard let habitCategory = habit.categoria,
                       filterState.selectedCategoryIds.contains(habitCategory) else {
                     return false
+                }
+            }
+            
+            // Filtrar por prioridad si hay prioridades seleccionadas
+            if !filterState.selectedPriorities.isEmpty {
+                guard let habitPriority = habit.prioridad,
+                      filterState.selectedPriorities.contains(habitPriority) else {
+                    if !filterState.selectedPriorities.isEmpty && habit.prioridad == nil {
+                        return false
+                    }
+                }
+            }
+            
+            // Filtrar por frecuencia si hay frecuencias seleccionadas
+            if !filterState.selectedFrequencies.isEmpty {
+                guard let habitFrequency = habit.tipoFrecuencia,
+                      filterState.selectedFrequencies.contains(habitFrequency) else {
+                    if !filterState.selectedFrequencies.isEmpty && habit.tipoFrecuencia == nil {
+                        return false
+                    }
                 }
             }
             

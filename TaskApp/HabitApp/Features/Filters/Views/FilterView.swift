@@ -89,6 +89,60 @@ struct FilterView: View {
                 }
             }
             
+            // Filtro de prioridades
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Prioridades")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    
+                    if !viewModel.filterState.selectedPriorities.isEmpty {
+                        Text("\(viewModel.filterState.selectedPriorities.count) seleccionadas")
+                            .font(.caption)
+                            .foregroundStyle(.tint)
+                    }
+                }
+                
+                FlowLayout(spacing: 8) {
+                    ForEach(Prioridad.allCases, id: \.self) { priority in
+                        PriorityFilterButton(
+                            priority: priority,
+                            isSelected: viewModel.filterState.selectedPriorities.contains(priority),
+                            action: {
+                                viewModel.togglePriority(priority)
+                            }
+                        )
+                    }
+                }
+            }
+            
+            // Filtro de frecuencias
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Frecuencias")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    
+                    if !viewModel.filterState.selectedFrequencies.isEmpty {
+                        Text("\(viewModel.filterState.selectedFrequencies.count) seleccionadas")
+                            .font(.caption)
+                            .foregroundStyle(.tint)
+                    }
+                }
+                
+                FlowLayout(spacing: 8) {
+                    ForEach(TipoFrecuencia.allCases, id: \.self) { frequency in
+                        FrequencyFilterButton(
+                            frequency: frequency,
+                            isSelected: viewModel.filterState.selectedFrequencies.contains(frequency),
+                            action: {
+                                viewModel.toggleFrequency(frequency)
+                            }
+                        )
+                    }
+                }
+            }
+            
             Spacer()
         }
         .padding(.horizontal, 12)
@@ -129,6 +183,82 @@ private struct CategoryFilterButton: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(isSelected ? category.color : Color.clear, lineWidth: 1)
+            )
+        }
+    }
+}
+
+private struct PriorityFilterButton: View {
+    let priority: Prioridad
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: priorityIcon)
+                    .font(.caption)
+                Text(priorityLabel)
+                    .font(.caption)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(isSelected ? priorityColor.opacity(0.2) : Color.gray.opacity(0.1))
+            .foregroundStyle(isSelected ? priorityColor : .secondary)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isSelected ? priorityColor : Color.clear, lineWidth: 1)
+            )
+        }
+    }
+    
+    private var priorityColor: Color {
+        switch priority {
+        case .low: return .green
+        case .medium: return .orange
+        case .high: return .red
+        }
+    }
+    
+    private var priorityIcon: String {
+        switch priority {
+        case .low: return "arrow.down"
+        case .medium: return "minus"
+        case .high: return "arrow.up"
+        }
+    }
+    
+    private var priorityLabel: String {
+        switch priority {
+        case .low: return "Baja"
+        case .medium: return "Media"
+        case .high: return "Alta"
+        }
+    }
+}
+
+private struct FrequencyFilterButton: View {
+    let frequency: TipoFrecuencia
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: frequency == .semanal ? "calendar.badge.clock" : "calendar.badge")
+                    .font(.caption)
+                Text(frequency.rawValue)
+                    .font(.caption)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+            .foregroundStyle(isSelected ? .blue : .secondary)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 1)
             )
         }
     }
