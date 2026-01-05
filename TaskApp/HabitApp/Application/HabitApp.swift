@@ -97,11 +97,13 @@ struct HabitApp: App {
                     .tabItem {
                         Label("Habitos", systemImage: "checklist")
                     }
+                    .id("habitos-\(appConfig.storageType.rawValue)")
                 
-                StatisticsView()
+                StatisticsView(storageProvider: storageProvider)
                     .tabItem {
                         Label("Estadísticas", systemImage: "chart.bar.fill")
                     }
+                    .id("statistics-\(appConfig.storageType.rawValue)")
                 
                 // Vistas de navegación proporcionadas por los plugins
                 ForEach(PluginRegistry.shared.getPluginMainNavigationViews(), id: \.id) { nav in
@@ -147,8 +149,10 @@ struct HabitApp: App {
                     switch selectedDetailView {
                     case "habitos":
                         HabitListView(storageProvider: storageProvider)
+                            .id("habitos-\(appConfig.storageType.rawValue)")
                     case "estadisticas":
-                        StatisticsView()
+                        StatisticsView(storageProvider: storageProvider)
+                            .id("statistics-\(appConfig.storageType.rawValue)")
                     case "ajustes":
                         SettingsView()
                     default:

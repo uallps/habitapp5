@@ -8,9 +8,14 @@
 import SwiftUI
 
 struct StatisticsView: View {
-    @StateObject private var viewModel = StatisticsViewModel()
+    @StateObject private var viewModel: StatisticsViewModel
+    @EnvironmentObject var appConfig: AppConfig
     @State private var showWeekDetails = false
     @State private var showMonthDetails = false
+    
+    init(storageProvider: StorageProvider) {
+        _viewModel = StateObject(wrappedValue: StatisticsViewModel(storageProvider: storageProvider))
+    }
     
     var body: some View {
         ScrollView {
