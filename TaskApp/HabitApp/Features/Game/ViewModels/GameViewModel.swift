@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import Combine
 
 @MainActor
@@ -22,7 +23,8 @@ final class GameViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let storageProvider: StorageProvider
-    private let gameStorageService = GameStorageService.shared
+    private var gameStorageService: GameStorageService
+    private let appConfig: AppConfig
     
     // MARK: - Computed Properties
     
@@ -80,8 +82,14 @@ final class GameViewModel: ObservableObject {
     
     // MARK: - Initialization
     
-    init(storageProvider: StorageProvider) {
+    init(storageProvider: StorageProvider, appConfig: AppConfig) {
         self.storageProvider = storageProvider
+        self.appConfig = appConfig
+        
+        // Inicializar el servicio de almacenamiento según la configuración
+        let storageType: GameStorageType = (appConfig.storageType == .swiftData) ? .swiftData : .json
+        self.gameStorageService = GameStorageService(storageType: storageType)
+        
         Task {
             await loadGameData()
             await loadHabitos()
