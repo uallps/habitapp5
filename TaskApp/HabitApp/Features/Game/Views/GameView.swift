@@ -38,6 +38,11 @@ struct GameView: View {
             }
             .navigationTitle("Juego")
             .navigationBarTitleDisplayMode(.large)
+            .task {
+                // Recargar hábitos cada vez que se muestra la vista
+                // Esto mantiene la lista actualizada con hábitos creados/eliminados
+                await viewModel.reloadHabitos()
+            }
         }
     }
     
