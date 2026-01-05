@@ -58,21 +58,7 @@ final class FilterPlugin: ViewPlugin, HabitFilterProvider {
     }
     
     func settingsView() -> some View {
-        Toggle(isOn: Binding(
-            get: { self.pluginEnabled },
-            set: { newValue in
-                self.pluginEnabled = newValue
-                PluginRegistry.shared.pluginStateDidChange()
-            }
-        )) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Filtros")
-                    .font(.headline)
-                Text("Filtrado por categorías y búsqueda")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        FilterSettingsView()
     }
     
     /// Provee la vista de filtros para mostrar en HabitListView
