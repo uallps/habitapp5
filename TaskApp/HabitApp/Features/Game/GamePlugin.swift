@@ -57,8 +57,20 @@ final class GamePlugin: ViewPlugin {
     
     func mainNavigationView() -> (title: String, view: AnyView)? {
         return ("Juego", AnyView(
-            GameView(storageProvider: config.storageProvider, appConfig: config)
+            GameViewWrapper(config: config)
                 .environmentObject(config)
         ))
+    }
+}
+
+// MARK: - GameViewWrapper
+
+/// Vista wrapper que se recrea cuando cambia el tipo de almacenamiento
+private struct GameViewWrapper: View {
+    @ObservedObject var config: AppConfig
+    
+    var body: some View {
+        GameView(storageProvider: config.storageProvider, appConfig: config)
+            .id("game-wrapper-\(config.storageType.rawValue)")
     }
 }
