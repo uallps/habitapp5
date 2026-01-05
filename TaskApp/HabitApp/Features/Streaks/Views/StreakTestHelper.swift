@@ -9,6 +9,10 @@ struct StreakTestHelper: View {
     @State private var selectedDate = Date()
     @State private var showDatePicker = false
     
+    // Estados para rango de fechas
+    @State private var rangeStartDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+    @State private var rangeEndDate = Date()
+    
     private var streakData: StreakData {
         StreakCalculator.calculate(for: habit)
     }
@@ -100,6 +104,73 @@ struct StreakTestHelper: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                 }
+            }
+            
+            Divider()
+            
+            // Nueva sección: Rango de fechas
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Gestión de rango de fechas:")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                
+                VStack(spacing: 8) {
+                    // Fecha de inicio
+                    HStack {
+                        Text("Desde:")
+                            .font(.caption)
+                            .frame(width: 50, alignment: .leading)
+                        DatePicker(
+                            "",
+                            selection: $rangeStartDate,
+                            displayedComponents: [.date]
+                        )
+                        .labelsHidden()
+                        .datePickerStyle(.compact)
+                    }
+                    
+                    // Fecha de fin
+                    HStack {
+                        Text("Hasta:")
+                            .font(.caption)
+                            .frame(width: 50, alignment: .leading)
+                        DatePicker(
+                            "",
+                            selection: $rangeEndDate,
+                            displayedComponents: [.date]
+                        )
+                        .labelsHidden()
+                        .datePickerStyle(.compact)
+                    }
+                    
+                    // Información del rango
+                    let daysInRange = calculateDaysInRange()
+                    Text("\(daysInRange) días en el rango seleccionado")
+                        .font(.caption2)
+                        .foregroundColor(.blue)
+                    
+                    // Botones de acción
+                    HStack(spacing: 8) {
+                        Button(action: addDateRange) {
+                            Label("Añadir rango", systemImage: "plus.circle.fill")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        .controlSize(.small)
+                        
+                        Button(action: removeDateRange) {
+                            Label("Eliminar rango", systemImage: "minus.circle.fill")
+                                .font(.caption)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .controlSize(.small)
+                    }
+                }
+                .padding(8)
+                .background(Color.purple.opacity(0.05))
+                .cornerRadius(8)
             }
             
             Divider()
@@ -222,6 +293,62 @@ struct StreakTestHelper: View {
                 }
             }
         }
+    }
+    
+    /// Calcula el número de días en el rango seleccionado
+    private func calculateDaysInRange() -> Int {
+        let calendar = Calendar.current
+        let startOfDay1 = calendar.startOfDay(for: rangeStartDate)
+        let startOfDay2 = calendar.startOfDay(for: rangeEndDate)
+        
+        let components = calendar.dateComponents([.day], from: startOfDay1, to: startOfDay2)
+        return abs(components.day ?? 0) + 1
+    }
+    
+    /// Añade todas las fechas del rango seleccionado a la completitud del hábito
+    private func addDateRange() {
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: min(rangeStartDate, rangeEndDate))
+        let endDate = calendar.startOfDay(for: max(rangeStartDate, rangeEndDate))
+        
+        var currentDate = startDate
+        var addedCount = 0
+        
+        while currentDate <= endDate {
+            habit.marcarCompletado(en: currentDate)
+            addedCount += 1
+            
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDate
+        }
+        
+        print("✅ [StreakTestHelper] Añadidas \(addedCount) fechas al hábito")
+    }
+    
+    /// Elimina todas las fechas del rango seleccionado de la completitud del hábito
+    private func removeDateRange() {
+        let calendar = Calendar.current
+        let startDate = calendar.startOfDay(for: min(rangeStartDate, rangeEndDate))
+        let endDate = calendar.startOfDay(for: max(rangeStartDate, rangeEndDate))
+        
+        var currentDate = startDate
+        var removedCount = 0
+        
+        while currentDate <= endDate {
+            if habit.estaCompletado(en: currentDate) {
+                habit.desmarcarCompletado(en: currentDate)
+                removedCount += 1
+            }
+            
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDate
+        }
+        
+        print("🗑️ [StreakTestHelper] Eliminadas \(removedCount) fechas del hábito")
     }
     
     private func formatDate(_ date: Date) -> String {
