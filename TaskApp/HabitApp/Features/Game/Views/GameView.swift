@@ -37,7 +37,9 @@ struct GameView: View {
                 .padding()
             }
             .navigationTitle("Juego")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
+            #endif
             .task {
                 // Recargar hábitos cada vez que se muestra la vista
                 // Esto mantiene la lista actualizada con hábitos creados/eliminados
