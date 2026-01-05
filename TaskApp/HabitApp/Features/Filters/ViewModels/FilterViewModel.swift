@@ -128,9 +128,7 @@ class FilterViewModel: ObservableObject {
             if !filterState.selectedPriorities.isEmpty {
                 guard let habitPriority = habit.prioridad,
                       filterState.selectedPriorities.contains(habitPriority) else {
-                    if !filterState.selectedPriorities.isEmpty && habit.prioridad == nil {
-                        return false
-                    }
+                    return false
                 }
             }
             
@@ -138,9 +136,7 @@ class FilterViewModel: ObservableObject {
             if !filterState.selectedFrequencies.isEmpty {
                 guard let habitFrequency = habit.tipoFrecuencia,
                       filterState.selectedFrequencies.contains(habitFrequency) else {
-                    if !filterState.selectedFrequencies.isEmpty && habit.tipoFrecuencia == nil {
-                        return false
-                    }
+                    return false
                 }
             }
             

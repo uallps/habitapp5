@@ -104,7 +104,7 @@ struct FilterView: View {
                 }
                 
                 FlowLayout(spacing: 8) {
-                    ForEach(Prioridad.allCases, id: \.self) { priority in
+                    ForEach([Prioridad.low, Prioridad.medium, Prioridad.high], id: \.self) { priority in
                         PriorityFilterButton(
                             priority: priority,
                             isSelected: viewModel.filterState.selectedPriorities.contains(priority),
@@ -131,7 +131,7 @@ struct FilterView: View {
                 }
                 
                 FlowLayout(spacing: 8) {
-                    ForEach(TipoFrecuencia.allCases, id: \.self) { frequency in
+                    ForEach([TipoFrecuencia.semanal, TipoFrecuencia.mensual], id: \.self) { frequency in
                         FrequencyFilterButton(
                             frequency: frequency,
                             isSelected: viewModel.filterState.selectedFrequencies.contains(frequency),
