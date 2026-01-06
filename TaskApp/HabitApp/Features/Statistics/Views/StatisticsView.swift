@@ -468,29 +468,59 @@ struct PriorityCardView: View {
             }
 
             Text("Hábitos Activos Por Prioridad")
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .allowsTightening(true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .appCard(padding: 14)
     }
 
     private func priorityItem(title: String, value: Int, color: Color) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 3) {
+        #if os(iOS)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(color)
+                    .frame(width: 7, height: 7)
+
+                Text(title)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .allowsTightening(true)
+            }
+
+            Text("\(value)")
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundStyle(.primary)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .allowsTightening(true)
+        }
+        #else
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
             Circle()
                 .fill(color)
-                .frame(width: 8, height: 8)
+                .frame(width: 7, height: 7)
 
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
             Text("\(value)")
-                .font(.title2)
+                .font(.title3)
                 .fontWeight(.bold)
                 .foregroundStyle(.primary)
-                .padding(.leading, 8)
+                .monospacedDigit()
+                .padding(.leading, 6)
         }
+        #endif
     }
 
     private var priorityColorLow: Color { .green }
