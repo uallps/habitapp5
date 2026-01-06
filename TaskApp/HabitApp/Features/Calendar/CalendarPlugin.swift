@@ -58,9 +58,20 @@ final class CalendarPlugin: ViewPlugin {
                     .font(.headline)
             }
 
-            Text("Visualiza en un calendario los días en los que completaste hábitos")
+            Text("Consulta en el calendario tus hábitos programados y completados cada día, navega por meses y crea, modifica o elimina hábitos desde esta ventana.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            Divider()
+
+            HStack {
+                Text("Estado:")
+                    .font(.caption)
+                Spacer()
+                Text(pluginEnabled ? "Activo" : "Inactivo")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding()
         .background(Color.secondary.opacity(0.05))

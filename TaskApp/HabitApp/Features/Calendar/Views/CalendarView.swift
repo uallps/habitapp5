@@ -6,6 +6,8 @@ struct CalendarView: View {
     @State private var displayedMonth: Date = Calendar.current.startOfDay(for: Date())
     @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
     @State private var draftHabit: Habito? = nil
+    @State private var habitPendingDeletion: Habito? = nil
+    @State private var editingHabitId: UUID? = nil
 
     init(storageProvider: StorageProvider) {
         _habitsViewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
@@ -22,6 +24,7 @@ struct CalendarView: View {
 
     private var scheduledDotColor: Color { Color.secondary.opacity(0.8) }
     private var completedDotColor: Color { Color.green }
+    private var todayHighlightColor: Color { Color.purple }
 
     private var monthStart: Date {
         let comps = calendar.dateComponents([.year, .month], from: displayedMonth)
@@ -120,14 +123,29 @@ struct CalendarView: View {
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .navigationTitle("Calendario")
+        .alert(
+            "Eliminar hábito",
+            isPresented: Binding(
+                get: { habitPendingDeletion != nil },
+                set: { if !$0 { habitPendingDeletion = nil } }
+            ),
+            presenting: habitPendingDeletion
+        ) { habit in
+            Button("Eliminar", role: .destructive) {
+                Task { @MainActor in
+                    await deleteHabit(habit)
+                }
+            }
+            Button("Cancelar", role: .cancel) {
+                habitPendingDeletion = nil
+            }
+        } message: { habit in
+            Text("¿Seguro que quieres eliminar \"\(habit.title)\"?")
+        }
         .task {
             await habitsViewModel.loadHabits()
             displayedMonth = monthStart
             selectedDate = calendar.startOfDay(for: Date())
-        }
-        .onChange(of: displayedMonth) { _, _ in
-            // Al cambiar de mes, seleccionar el primer día del mes mostrado.
-            selectedDate = monthStart
         }
         .sheet(isPresented: Binding(
             get: { draftHabit != nil },
@@ -154,6 +172,34 @@ struct CalendarView: View {
                                     await habitsViewModel.loadHabits()
                                     self.draftHabit = nil
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { editingHabitId != nil },
+            set: { if !$0 { editingHabitId = nil } }
+        )) {
+            if let editingHabitId,
+               let index = habitsViewModel.habitos.firstIndex(where: { $0.id == editingHabitId }) {
+                NavigationStack {
+                    HabitDetailView(
+                        habit: Binding(
+                            get: { habitsViewModel.habitos[index] },
+                            set: { habitsViewModel.habitos[index] = $0 }
+                        ),
+                        onSave: {
+                            Task { @MainActor in
+                                await habitsViewModel.saveHabits()
+                            }
+                        }
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cerrar") {
+                                self.editingHabitId = nil
                             }
                         }
                     }
@@ -244,6 +290,7 @@ struct CalendarView: View {
                     let hasCompletions = (completedHabitsByDay[key]?.isEmpty == false)
                     let hasScheduled = (scheduledHabitsByDay[key]?.isEmpty == false)
                     let isSelected = calendar.isDate(key, inSameDayAs: selectedDayKey)
+                    let isToday = calendar.isDate(key, inSameDayAs: Date())
 
                     Button {
                         // Si tocas un día fuera del mes, cambiar el mes mostrado.
@@ -278,11 +325,20 @@ struct CalendarView: View {
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(isSelected ? Color.accentColor.opacity(0.14) : AppStyle.subtleFill)
+                                .fill(
+                                    isSelected
+                                        ? Color.accentColor.opacity(0.14)
+                                        : (isToday ? todayHighlightColor.opacity(0.10) : AppStyle.subtleFill)
+                                )
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(isSelected ? Color.accentColor.opacity(0.55) : Color.clear, lineWidth: 1)
+                                .stroke(
+                                    isSelected
+                                        ? Color.accentColor.opacity(0.55)
+                                        : (isToday ? todayHighlightColor.opacity(0.65) : Color.clear),
+                                    lineWidth: 1
+                                )
                         )
                     }
                     .buttonStyle(.plain)
@@ -349,7 +405,28 @@ struct CalendarView: View {
                     .foregroundStyle(.secondary)
 
                 ForEach(selectedDayScheduledHabits, id: \.id) { habit in
-                    CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey)
+                    Button {
+                        editingHabitId = habit.id
+                    } label: {
+                        CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey)
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            habitPendingDeletion = habit
+                        } label: {
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    }
+#if os(iOS)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            habitPendingDeletion = habit
+                        } label: {
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    }
+#endif
                 }
             }
 
@@ -364,12 +441,42 @@ struct CalendarView: View {
                     .padding(.top, selectedDayScheduledHabits.isEmpty ? 0 : 4)
 
                 ForEach(completedOnly, id: \.id) { habit in
-                    CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey)
+                    Button {
+                        editingHabitId = habit.id
+                    } label: {
+                        CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey, showsCheckmark: true)
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            habitPendingDeletion = habit
+                        } label: {
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    }
+#if os(iOS)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            habitPendingDeletion = habit
+                        } label: {
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    }
+#endif
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .appCard(padding: 14)
+    }
+
+    private func deleteHabit(_ habit: Habito) async {
+        defer { habitPendingDeletion = nil }
+        guard let index = habitsViewModel.habitos.firstIndex(where: { $0.id == habit.id }) else {
+            return
+        }
+        await habitsViewModel.removeHabits(atOffsets: IndexSet(integer: index))
+        await habitsViewModel.loadHabits()
     }
 
     private func presentNewHabit() {
@@ -400,6 +507,13 @@ struct CalendarView: View {
 private struct CalendarHabitRowView: View {
     let habit: Habito
     let referenceDate: Date
+    let showsCheckmark: Bool
+
+    init(habit: Habito, referenceDate: Date, showsCheckmark: Bool = false) {
+        self.habit = habit
+        self.referenceDate = referenceDate
+        self.showsCheckmark = showsCheckmark
+    }
 
     @EnvironmentObject private var appConfig: AppConfig
 
@@ -410,7 +524,13 @@ private struct CalendarHabitRowView: View {
     }
 
     var body: some View {
-        HStack {
+        HStack(alignment: .top, spacing: 10) {
+            if showsCheckmark {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .padding(.top, 2)
+            }
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(habit.title)
                     .font(.body.weight(.semibold))
@@ -476,15 +596,26 @@ private struct CalendarHabitRowView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+
+#if os(iOS)
+                if isCompletedOutsideScheduledDay {
+                    Text("Completado fuera de fecha establecida")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                        .padding(.top, 6)
+                }
+#endif
             }
 
-            // Vistas de plugins (igual que en la lista)
+            // igual que en la lista
             ForEach(0..<PluginRegistry.shared.getHabitoRowViews(for: habit).count, id: \.self) { index in
                 PluginRegistry.shared.getHabitoRowViews(for: habit)[index]
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .appCard(padding: 14)
+        .contentShape(Rectangle())
+#if os(macOS)
         .overlay(alignment: .topTrailing) {
             if isCompletedOutsideScheduledDay {
                 Text("Completado fuera de fecha establecida")
@@ -492,11 +623,10 @@ private struct CalendarHabitRowView: View {
                     .foregroundStyle(.orange)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 6)
-                    .background(AppStyle.subtleFill)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .padding(10)
             }
         }
+#endif
     }
 
     private func formatDiasMes(_ dias: [Int]) -> String {

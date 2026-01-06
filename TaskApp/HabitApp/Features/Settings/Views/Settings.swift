@@ -54,11 +54,14 @@ struct SettingsView: View {
     var body: some View {
         Group {
             #if os(macOS)
-            HStack(spacing: 0) {
-                Spacer(minLength: 0)
-                settingsForm
-                    .frame(maxWidth: Layout.maxContentWidth, alignment: .leading)
-                Spacer(minLength: 0)
+            ScrollView {
+                HStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    settingsForm
+                        .frame(maxWidth: Layout.maxContentWidth, alignment: .leading)
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 8)
             }
             #else
             settingsForm
