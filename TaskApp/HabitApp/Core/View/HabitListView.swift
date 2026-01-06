@@ -37,28 +37,34 @@ struct HabitListView: View {
     }
 
     private var content: some View {
-        List {
-            ForEach(filteredHabits, id: \Habito.id) { habit in
-                habitRow(habit: habit)
+        VStack(spacing: 0) {
+            // Filtro completamente fuera de la List
+            if let provider = filterProvider, provider.isEnabled {
+                ScrollView {
+                    provider.filterView(categories: availableCategories)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                }
+                .frame(maxHeight: 250)
             }
-            .onDelete { indexSet in
-                let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
-                let originalOffsets = IndexSet(ids.compactMap { id in
-                    viewModel.habitos.firstIndex(where: { $0.id == id })
-                })
-                _Concurrency.Task {
-                    await viewModel.removeHabits(atOffsets: originalOffsets)
+            
+            // Lista de hábitos
+            List {
+                ForEach(filteredHabits, id: \Habito.id) { habit in
+                    habitRow(habit: habit)
+                }
+                .onDelete { indexSet in
+                    let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
+                    let originalOffsets = IndexSet(ids.compactMap { id in
+                        viewModel.habitos.firstIndex(where: { $0.id == id })
+                    })
+                    _Concurrency.Task {
+                        await viewModel.removeHabits(atOffsets: originalOffsets)
+                    }
                 }
             }
-        }
-        .id(filterRefreshToggle)
-        .appListContainer()
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if let provider = filterProvider, provider.isEnabled {
-                provider.filterView(categories: availableCategories)
-                    .padding(.horizontal, 12)
-                    .padding(.top, 6)
-            }
+            .id(filterRefreshToggle)
+            .appListContainer()
         }
         .navigationTitle("Hábitos")
         .navigationDestination(isPresented: Binding(
@@ -92,6 +98,7 @@ struct HabitListView: View {
         }
         .onReceive(pluginRegistry.objectWillChange) { _ in
             setupFilter()
+            filterRefreshToggle.toggle()
         }
         .onReceive(filterChangePublisher) { _ in
             filterRefreshToggle.toggle()

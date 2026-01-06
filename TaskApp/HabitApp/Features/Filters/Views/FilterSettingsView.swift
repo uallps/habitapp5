@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FilterSettingsView: View {
-    @AppStorage("plugin.filter.enabled") private var isEnabled = true
+    @AppStorage("plugin.filters.enabled") private var isEnabled = true
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
