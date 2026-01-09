@@ -10,7 +10,9 @@ struct CalendarView: View {
 
     @State private var displayedMonth: Date = Calendar.current.startOfDay(for: Date())
     @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
-    @State private var draftHabit: Habito? = nil
+    @State private var draftHabit: Habito = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
+    @State private var isPresentingNewHabit = false
+    @State private var lastNewHabitPresentationAt: Date = .distantPast
     @State private var habitPendingDeletion: Habito? = nil
     @State private var editingHabitId: UUID? = nil
 
@@ -74,6 +76,7 @@ struct CalendarView: View {
             for completionDate in habit.fechaCompletitud {
                 let day = calendar.startOfDay(for: completionDate)
                 guard day >= monthStart && day < monthEndExclusive else { continue }
+                guard isHabitActive(habit, on: day) else { continue }
                 dict[day, default: []].append(habit)
             }
         }
@@ -118,75 +121,56 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                calendarHeader
-                calendarLegend
-                calendarGrid
-
-                dayDetails
-            }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .padding(.horizontal)
-            .padding(.vertical, 8)
-        }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .navigationTitle("Calendario")
-        .alert(
-            "Eliminar hábito",
-            isPresented: Binding(
-                get: { habitPendingDeletion != nil },
-                set: { if !$0 { habitPendingDeletion = nil } }
-            ),
-            presenting: habitPendingDeletion
-        ) { habit in
-            Button("Eliminar", role: .destructive) {
-                Task { @MainActor in
-                    await deleteHabit(habit)
+        calendarRootView
+            .navigationTitle("Calendario")
+            .alert(
+                "Eliminar hábito",
+                isPresented: Binding(
+                    get: { habitPendingDeletion != nil },
+                    set: { if !$0 { habitPendingDeletion = nil } }
+                ),
+                presenting: habitPendingDeletion
+            ) { habit in
+                Button("Eliminar", role: .destructive) {
+                    Task { @MainActor in
+                        await deleteHabit(habit)
+                    }
                 }
+                Button("Cancelar", role: .cancel) {
+                    habitPendingDeletion = nil
+                }
+            } message: { habit in
+                Text("¿Seguro que quieres eliminar \"\(habit.title)\"?")
             }
-            Button("Cancelar", role: .cancel) {
-                habitPendingDeletion = nil
+            .task {
+                await habitsViewModel.loadHabits()
+                displayedMonth = monthStart
+                selectedDate = calendar.startOfDay(for: Date())
             }
-        } message: { habit in
-            Text("¿Seguro que quieres eliminar \"\(habit.title)\"?")
-        }
-        .task {
-            await habitsViewModel.loadHabits()
-            displayedMonth = monthStart
-            selectedDate = calendar.startOfDay(for: Date())
-        }
-        .sheet(isPresented: Binding(
-            get: { draftHabit != nil },
-            set: { if !$0 { draftHabit = nil } }
-        )) {
-            if let draftHabit {
+            .sheet(isPresented: $isPresentingNewHabit, onDismiss: {
+                resetDraftHabit()
+            }) {
                 NavigationStack {
-                    HabitDetailView(
-                        habit: Binding(
-                            get: { draftHabit },
-                            set: { self.draftHabit = $0 }
-                        )
-                    )
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancelar") {
-                                self.draftHabit = nil
+                    HabitDetailView(habit: $draftHabit)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Cancelar") {
+                                    isPresentingNewHabit = false
+                                }
                             }
-                        }
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Crear") {
-                                Task { @MainActor in
-                                    await habitsViewModel.addHabit(habit: draftHabit)
-                                    await habitsViewModel.loadHabits()
-                                    self.draftHabit = nil
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Crear") {
+                                    let habitToCreate = draftHabit
+                                    isPresentingNewHabit = false
+                                    Task { @MainActor in
+                                        await habitsViewModel.addHabit(habit: habitToCreate)
+                                        await habitsViewModel.loadHabits()
+                                    }
                                 }
                             }
                         }
-                    }
                 }
             }
-        }
         .sheet(isPresented: Binding(
             get: { editingHabitId != nil },
             set: { if !$0 { editingHabitId = nil } }
@@ -214,6 +198,43 @@ struct CalendarView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var calendarRootView: some View {
+        Group {
+#if os(iOS)
+            List {
+                Section {
+                    VStack(spacing: 12) {
+                        calendarHeader
+                        calendarLegend
+                        calendarGrid
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                    .padding(.vertical, 8)
+                }
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                .listRowSeparator(.hidden)
+
+                dayDetailsList
+            }
+            .listStyle(.plain)
+#else
+            ScrollView {
+                VStack(spacing: 12) {
+                    calendarHeader
+                    calendarLegend
+                    calendarGrid
+
+                    dayDetails
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+#endif
         }
     }
 
@@ -365,9 +386,17 @@ struct CalendarView: View {
             Button {
                 presentNewHabit()
             } label: {
-                Label("Añadir hábito", systemImage: "plus")
+                Label {
+                    Text("Añadir hábito")
+                } icon: {
+                    Image(systemName: "plus")
+                        .symbolRenderingMode(.monochrome)
+                        .foregroundStyle(.white)
+                }
             }
             .buttonStyle(.borderedProminent)
+            .tint(.accentColor)
+            .disabled(isPresentingNewHabit)
 
             if selectedDayScheduledHabits.isEmpty && selectedDayHabits.isEmpty {
                 Text("No hay hábitos programados ni completados este día")
@@ -454,6 +483,128 @@ struct CalendarView: View {
         .appCard(padding: 14)
     }
 
+#if os(iOS)
+    private var dayDetailsList: some View {
+        Group {
+            // Cabecera del día seleccionado + botón de crear.
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(formatSelectedDate(selectedDate))
+                        .font(.subheadline.weight(.semibold))
+
+                    Button {
+                        presentNewHabit()
+                    } label: {
+                        Label {
+                            Text("Añadir hábito")
+                        } icon: {
+                            Image(systemName: "plus")
+                                .symbolRenderingMode(.monochrome)
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.accentColor)
+                    .disabled(isPresentingNewHabit)
+
+                    if selectedDayScheduledHabits.isEmpty && selectedDayHabits.isEmpty {
+                        Text("No hay hábitos programados ni completados este día")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 8)
+            }
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+
+            if !selectedDayScheduledHabits.isEmpty {
+                Section(header:
+                    Text("Hábitos programados")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(nil)
+                ) {
+                    ForEach(selectedDayScheduledHabits, id: \.id) { habit in
+                        CalendarHabitRowView(
+                            habit: habit,
+                            referenceDate: selectedDayKey,
+                            rowKind: .scheduled,
+                            showsCompletionToggle: isSelectedDayToday,
+                            onToggleCompletion: {
+                                Task { @MainActor in
+                                    await toggleCompletionForSelectedDay(habit)
+                                }
+                            },
+                            onOpenDetails: {
+                                editingHabitId = habit.id
+                            }
+                        )
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                habitPendingDeletion = habit
+                            } label: {
+                                Label("Eliminar", systemImage: "trash")
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                habitPendingDeletion = habit
+                            } label: {
+                                Label("Eliminar", systemImage: "trash")
+                            }
+                        }
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                    }
+                }
+            }
+
+            if !selectedDayHabits.isEmpty {
+                Section(header:
+                    Text("Hábitos completados")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(nil)
+                ) {
+                    ForEach(selectedDayHabits, id: \.id) { habit in
+                        CalendarHabitRowView(
+                            habit: habit,
+                            referenceDate: selectedDayKey,
+                            rowKind: .completed,
+                            showsCompletionToggle: false,
+                            onToggleCompletion: nil,
+                            onOpenDetails: {
+                                editingHabitId = habit.id
+                            }
+                        )
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                habitPendingDeletion = habit
+                            } label: {
+                                Label("Eliminar", systemImage: "trash")
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                habitPendingDeletion = habit
+                            } label: {
+                                Label("Eliminar", systemImage: "trash")
+                            }
+                        }
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                    }
+                }
+            }
+        }
+    }
+#endif
+
     private func deleteHabit(_ habit: Habito) async {
         defer { habitPendingDeletion = nil }
         guard let index = habitsViewModel.habitos.firstIndex(where: { $0.id == habit.id }) else {
@@ -464,6 +615,15 @@ struct CalendarView: View {
     }
 
     private func presentNewHabit() {
+        // En iOS (List + sheet) puede dispararse dos veces el tap.
+        // Si el sheet ya está presentado, no volvemos a presentarlo.
+        guard !isPresentingNewHabit else { return }
+
+        // Debounce para evitar reaperturas inmediatas por eventos duplicados.
+        let now = Date()
+        guard now.timeIntervalSince(lastNewHabitPresentationAt) > 0.6 else { return }
+        lastNewHabitPresentationAt = now
+
         let dayOfMonth = calendar.component(.day, from: selectedDayKey)
 
         let habit = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
@@ -473,16 +633,30 @@ struct CalendarView: View {
         habit.diasMes = [dayOfMonth]
 
         draftHabit = habit
+        isPresentingNewHabit = true
+    }
+
+    private func resetDraftHabit() {
+        // Preparar un borrador limpio para la próxima creación.
+        draftHabit = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
     }
 
     private func isHabitActive(_ habit: Habito, on day: Date) -> Bool {
         let d = calendar.startOfDay(for: day)
-        if let start = habit.fechaInicio {
-            if d < calendar.startOfDay(for: start) { return false }
+
+        // Si `fechaInicio` es nil, en la UI se muestra "hoy" por defecto.
+        // Para que el grid no marque programados antes del inicio, tratamos nil como "hoy".
+        let effectiveStart = habit.fechaInicio ?? Date()
+        if calendar.compare(d, to: effectiveStart, toGranularity: .day) == .orderedAscending {
+            return false
         }
+
         if let end = habit.fechaFin {
-            if d > calendar.startOfDay(for: end) { return false }
+            if calendar.compare(d, to: end, toGranularity: .day) == .orderedDescending {
+                return false
+            }
         }
+
         return true
     }
 

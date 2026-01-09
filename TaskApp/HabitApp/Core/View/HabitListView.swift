@@ -12,6 +12,7 @@ import Combine
 struct HabitListView: View {
     @StateObject private var viewModel: HabitListViewModel
     @State private var selectedHabitID: UUID?
+    @State private var pendingDeletionHabitIDs: [UUID] = []
     @State private var filterProvider: HabitFilterProvider?
     @State private var availableCategories: [CategoryModel] = []
     @State private var filterRefreshToggle = false
@@ -53,20 +54,33 @@ struct HabitListView: View {
                 ForEach(filteredHabits, id: \Habito.id) { habit in
                     habitRow(habit: habit)
                 }
-                .onDelete { indexSet in
-                    let ids = indexSet.compactMap { filteredHabits[safe: $0]?.id }
-                    let originalOffsets = IndexSet(ids.compactMap { id in
-                        viewModel.habitos.firstIndex(where: { $0.id == id })
-                    })
-                    _Concurrency.Task {
-                        await viewModel.removeHabits(atOffsets: originalOffsets)
-                    }
-                }
             }
             .id(filterRefreshToggle)
             .appListContainer()
         }
         .navigationTitle("Hábitos")
+        .alert(
+            pendingDeletionHabitIDs.count > 1 ? "Eliminar hábitos" : "Eliminar hábito",
+            isPresented: Binding(
+                get: { !pendingDeletionHabitIDs.isEmpty },
+                set: { if !$0 { pendingDeletionHabitIDs = [] } }
+            )
+        ) {
+            Button("Eliminar", role: .destructive) {
+                confirmDeletion()
+            }
+            Button("Cancelar", role: .cancel) {
+                pendingDeletionHabitIDs = []
+            }
+        } message: {
+            if pendingDeletionHabitIDs.count == 1,
+               let id = pendingDeletionHabitIDs.first,
+               let habit = viewModel.habitos.first(where: { $0.id == id }) {
+                Text("¿Seguro que quieres eliminar \"\(habit.title)\"?")
+            } else {
+                Text("¿Seguro que quieres eliminar \(pendingDeletionHabitIDs.count) hábitos?")
+            }
+        }
         .navigationDestination(isPresented: Binding(
             get: { selectedHabitID != nil },
             set: { isPresented in
@@ -125,6 +139,15 @@ struct HabitListView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(AppCardPressedHighlightStyle())
+        #if os(iOS)
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                deleteHabit(habit)
+            } label: {
+                Label("Eliminar", systemImage: "trash")
+            }
+        }
+        #endif
         .contextMenu {
             Button("Eliminar hábito") {
                 deleteHabit(habit)
@@ -173,17 +196,32 @@ struct HabitListView: View {
     }
     
     private func deleteHabit(_ habit: Habito) {
-        if let index = viewModel.habitos.firstIndex(where: { $0.id == habit.id }) {
-            _Concurrency.Task {
-                await viewModel.removeHabits(atOffsets: IndexSet(integer: index))
-            }
-        }
+        pendingDeletionHabitIDs = [habit.id]
     }
     
     private func addNewHabit() {
         let newHabit = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
-        _Concurrency.Task {
-            await viewModel.addHabit(habit: newHabit)
+
+        Task { @MainActor in
+            withTransaction(Transaction(animation: nil)) {
+                viewModel.addHabitOptimistically(habit: newHabit)
+                selectedHabitID = newHabit.id
+            }
+        }
+    }
+
+    private func confirmDeletion() {
+        let idsToDelete = pendingDeletionHabitIDs
+        pendingDeletionHabitIDs = []
+
+        let originalOffsets = IndexSet(idsToDelete.compactMap { id in
+            viewModel.habitos.firstIndex(where: { $0.id == id })
+        })
+
+        guard !originalOffsets.isEmpty else { return }
+
+        Task { @MainActor in
+            await viewModel.removeHabits(atOffsets: originalOffsets)
         }
     }
     

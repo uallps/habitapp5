@@ -32,8 +32,28 @@ class HabitListViewModel: ObservableObject{
     }
     
     func addHabit(habit: Habito) async {
+        if habit.fechaInicio == nil {
+            habit.fechaInicio = Calendar.current.startOfDay(for: Date())
+        }
         habitos.append(habit)
 
+        await persistAndNotifyAfterAdding(habit)
+    }
+
+    /// Crea el hábito y devuelve inmediatamente (útil para navegar al detalle sin esperar a la persistencia).
+    /// La persistencia, notificaciones y avisos a plugins ocurren en segundo plano.
+    func addHabitOptimistically(habit: Habito) {
+        if habit.fechaInicio == nil {
+            habit.fechaInicio = Calendar.current.startOfDay(for: Date())
+        }
+        habitos.append(habit)
+
+        Task { @MainActor in
+            await persistAndNotifyAfterAdding(habit)
+        }
+    }
+
+    private func persistAndNotifyAfterAdding(_ habit: Habito) async {
         // Persistir inmediatamente para que cualquier pantalla/feature que lea
         // desde StorageProvider vea el mismo estado que la lista principal.
         do {
@@ -41,10 +61,10 @@ class HabitListViewModel: ObservableObject{
         } catch {
             print("[ERROR] Failed saving habits after add: \(error)")
         }
-        
+
         // Notificar a plugins que se creó un nuevo hábito
         await PluginRegistry.shared.notifyHabitoDidCreate(habit)
-        
+
         // Programar notificación si tiene fecha de recordatorio
         if let reminderDate = habit.reminderDate {
             try? await notificationService.scheduleNotification(for: habit, at: reminderDate)
@@ -62,7 +82,17 @@ class HabitListViewModel: ObservableObject{
         // Guardar IDs antes de eliminar para notificar después
         let deletedIds = offsets.map { habitos[$0].id }
         
-        habitos.remove(atOffsets: offsets)
+        // Importante (SwiftData/iOS): si eliminamos del ModelContext en el mismo ciclo en que la List
+        // todavía está renderizando una fila, SwiftData puede lanzar un fatal error por objeto "detached".
+        // 1) Quitamos el elemento del array sin animación.
+        // 2) Retrasamos ligeramente el guardado (que elimina del contexto) para dar tiempo a la UI a
+        //    recomputar sin tocar el objeto eliminado.
+        withTransaction(Transaction(animation: nil)) {
+            habitos.remove(atOffsets: offsets)
+        }
+
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
         do {
             try await storageProvider.saveHabits(habits: habitos)
         } catch {
