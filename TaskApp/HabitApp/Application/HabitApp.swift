@@ -10,7 +10,7 @@ import SwiftData
 
 @main
 struct HabitApp: App {
-    @State private var selectedDetailView: String?
+    @State private var selectedDetailView: String? = "habitos"
     @StateObject private var appConfig: AppConfig
     //Necesitamos pluginRegistry para poder observar cambios y actualizar la vista de plugins.
     @StateObject private var pluginRegistry = PluginRegistry.shared
@@ -89,6 +89,19 @@ struct HabitApp: App {
         print("Plugins registrados: \(registry.count)")
     }
 
+    private func systemImageName(forPluginId id: String) -> String {
+        switch id {
+        case "com.habitapp.calendar":
+            return "calendar"
+        case "com.habitapp.rutinas":
+            return "list.bullet.circle.fill"
+        case "com.habitapp.game":
+            return "gamecontroller.fill"
+        default:
+            return "puzzlepiece.extension"
+        }
+    }
+
     var body: some Scene {
         WindowGroup{
             #if os(iOS)
@@ -97,17 +110,19 @@ struct HabitApp: App {
                     .tabItem {
                         Label("Habitos", systemImage: "checklist")
                     }
+                    .id("habitos-\(appConfig.storageType.rawValue)")
                 
-                StatisticsView()
+                StatisticsView(storageProvider: storageProvider)
                     .tabItem {
                         Label("Estadísticas", systemImage: "chart.bar.fill")
                     }
+                    .id("statistics-\(appConfig.storageType.rawValue)")
                 
                 // Vistas de navegación proporcionadas por los plugins
                 ForEach(PluginRegistry.shared.getPluginMainNavigationViews(), id: \.id) { nav in
                     nav.view
                         .tabItem {
-                            Label(nav.title, systemImage: "puzzlepiece.extension")
+                            Label(nav.title, systemImage: systemImageName(forPluginId: nav.id))
                         }
                 }
                 
@@ -131,7 +146,7 @@ struct HabitApp: App {
                     // Links de navegación proporcionados por los plugins
                     ForEach(PluginRegistry.shared.getPluginMainNavigationViews(), id: \.id) { nav in
                         NavigationLink(value: nav.id) {
-                            Label(nav.title, systemImage: "puzzlepiece.extension")
+                            Label(nav.title, systemImage: systemImageName(forPluginId: nav.id))
                         }
                     }
                     
@@ -147,8 +162,10 @@ struct HabitApp: App {
                     switch selectedDetailView {
                     case "habitos":
                         HabitListView(storageProvider: storageProvider)
+                            .id("habitos-\(appConfig.storageType.rawValue)")
                     case "estadisticas":
-                        StatisticsView()
+                        StatisticsView(storageProvider: storageProvider)
+                            .id("statistics-\(appConfig.storageType.rawValue)")
                     case "ajustes":
                         SettingsView()
                     default:

@@ -18,7 +18,7 @@ struct DailyNoteView: View {
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             // Selector de fecha
             HStack {
                 Text("Fecha:")
@@ -35,6 +35,7 @@ struct DailyNoteView: View {
                     loadNoteForSelectedDate()
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
             // Editor de nota
             VStack(alignment: .leading, spacing: 8) {
@@ -51,6 +52,7 @@ struct DailyNoteView: View {
                             .foregroundStyle(.tertiary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 #if os(iOS)
                 TextField("Escribe tu nota aquí...", text: $noteContent, axis: .vertical)
@@ -99,8 +101,10 @@ struct DailyNoteView: View {
                     
                     Spacer()
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
             
             // Lista de notas recientes
             if !viewModel.getNotes(for: habit.id).isEmpty {
@@ -122,6 +126,7 @@ struct DailyNoteView: View {
                         }
                         .buttonStyle(.bordered)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     
                     ForEach(viewModel.getNotes(for: habit.id).prefix(5)) { note in
                         Button {
@@ -145,12 +150,15 @@ struct DailyNoteView: View {
                                 }
                             }
                             .padding(.vertical, 4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             loadNoteForSelectedDate()
         }
