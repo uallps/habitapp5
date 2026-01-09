@@ -18,7 +18,7 @@ struct DailyNoteView: View {
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             // Selector de fecha
             HStack {
                 Text("Fecha:")
@@ -151,6 +151,7 @@ struct DailyNoteView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             loadNoteForSelectedDate()
         }
