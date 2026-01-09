@@ -168,11 +168,9 @@ struct HabitDetailView: View {
 
             // Sección de Notas Diarias
             Section(header: AppSectionHeader(title: "Notas Diarias")) {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        DailyNoteView(habit: habit)
-                    }
-                }
+                DailyNoteView(habit: habit)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             }
 
             // Sección de Historial de Completitud
@@ -213,16 +211,22 @@ struct HabitDetailView: View {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 
             }
 
             // Sección de Racha
             Section(header: AppSectionHeader(title: "Racha")) {
                 StreakSectionView(habit: $habit)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 
                 // TEMPORAL: Helper para probar rachas
                 // Comentar o eliminar esta línea cuando no hagamos debug de rachas
                 StreakTestHelper(habit: $habit)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             }
 
             // Sección dinámica de plugins
