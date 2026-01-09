@@ -190,7 +190,7 @@ struct HabitDetailView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(fecha.formatted(date: .abbreviated, time: .omitted))
                                         if !habit.debeRealizarse(en: fecha) {
-                                            Text("(fuera de días establecidos)")
+                                            Text("Completado fuera de fecha establecida")
                                                 .font(.caption2)
                                                 .foregroundStyle(.orange)
                                         }

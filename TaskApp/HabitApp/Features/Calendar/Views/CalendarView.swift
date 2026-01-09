@@ -1,5 +1,10 @@
 import SwiftUI
 
+private enum CalendarHabitRowKind {
+    case scheduled
+    case completed
+}
+
 struct CalendarView: View {
     @StateObject private var habitsViewModel: HabitListViewModel
 
@@ -98,6 +103,10 @@ struct CalendarView: View {
 
     private var selectedDayKey: Date {
         calendar.startOfDay(for: selectedDate)
+    }
+
+    private var isSelectedDayToday: Bool {
+        calendar.isDate(selectedDayKey, inSameDayAs: Date())
     }
 
     private var selectedDayHabits: [Habito] {
@@ -348,39 +357,6 @@ struct CalendarView: View {
         .appCard(padding: 14)
     }
 
-    private var emptySelectionView: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(formatSelectedDate(selectedDate))
-                .font(.subheadline.weight(.semibold))
-
-            Text("No hay hábitos completados este día")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Button {
-                presentNewHabit()
-            } label: {
-                Label("Añadir hábito", systemImage: "plus")
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .appCard(padding: 14)
-    }
-
-    private var completedHabitsList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(formatSelectedDate(selectedDate))
-                .font(.subheadline.weight(.semibold))
-
-            ForEach(selectedDayHabits, id: \.id) { habit in
-                CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .appCard(padding: 14)
-    }
-
     private var dayDetails: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(formatSelectedDate(selectedDate))
@@ -405,12 +381,20 @@ struct CalendarView: View {
                     .foregroundStyle(.secondary)
 
                 ForEach(selectedDayScheduledHabits, id: \.id) { habit in
-                    Button {
-                        editingHabitId = habit.id
-                    } label: {
-                        CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey)
-                    }
-                    .buttonStyle(.plain)
+                    CalendarHabitRowView(
+                        habit: habit,
+                        referenceDate: selectedDayKey,
+                        rowKind: .scheduled,
+                        showsCompletionToggle: isSelectedDayToday,
+                        onToggleCompletion: {
+                            Task { @MainActor in
+                                await toggleCompletionForSelectedDay(habit)
+                            }
+                        },
+                        onOpenDetails: {
+                            editingHabitId = habit.id
+                        }
+                    )
                     .contextMenu {
                         Button(role: .destructive) {
                             habitPendingDeletion = habit
@@ -430,23 +414,23 @@ struct CalendarView: View {
                 }
             }
 
-            // Mostrar completados que NO están ya en la sección de programados
-            let scheduledIds = Set(selectedDayScheduledHabits.map { $0.id })
-            let completedOnly = selectedDayHabits.filter { !scheduledIds.contains($0.id) }
-
-            if !completedOnly.isEmpty {
-                Text("Completados")
+            if !selectedDayHabits.isEmpty {
+                Text("Hábitos completados")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .padding(.top, selectedDayScheduledHabits.isEmpty ? 0 : 4)
 
-                ForEach(completedOnly, id: \.id) { habit in
-                    Button {
-                        editingHabitId = habit.id
-                    } label: {
-                        CalendarHabitRowView(habit: habit, referenceDate: selectedDayKey, showsCheckmark: true)
-                    }
-                    .buttonStyle(.plain)
+                ForEach(selectedDayHabits, id: \.id) { habit in
+                    CalendarHabitRowView(
+                        habit: habit,
+                        referenceDate: selectedDayKey,
+                        rowKind: .completed,
+                        showsCompletionToggle: false,
+                        onToggleCompletion: nil,
+                        onOpenDetails: {
+                            editingHabitId = habit.id
+                        }
+                    )
                     .contextMenu {
                         Button(role: .destructive) {
                             habitPendingDeletion = habit
@@ -502,17 +486,40 @@ struct CalendarView: View {
         return true
     }
 
+    @MainActor
+    private func toggleCompletionForSelectedDay(_ habit: Habito) async {
+        // Solo permitir completar/descompletar en el día actual.
+        guard isSelectedDayToday else { return }
+        guard let index = habitsViewModel.habitos.firstIndex(where: { $0.id == habit.id }) else { return }
+
+        habitsViewModel.habitos[index].toggleCompletitud(para: selectedDayKey)
+        await habitsViewModel.saveHabits()
+    }
+
 }
 
 private struct CalendarHabitRowView: View {
     let habit: Habito
     let referenceDate: Date
-    let showsCheckmark: Bool
+    let rowKind: CalendarHabitRowKind
+    let showsCompletionToggle: Bool
+    let onToggleCompletion: (() -> Void)?
+    let onOpenDetails: (() -> Void)?
 
-    init(habit: Habito, referenceDate: Date, showsCheckmark: Bool = false) {
+    init(
+        habit: Habito,
+        referenceDate: Date,
+        rowKind: CalendarHabitRowKind,
+        showsCompletionToggle: Bool = false,
+        onToggleCompletion: (() -> Void)? = nil,
+        onOpenDetails: (() -> Void)? = nil
+    ) {
         self.habit = habit
         self.referenceDate = referenceDate
-        self.showsCheckmark = showsCheckmark
+        self.rowKind = rowKind
+        self.showsCompletionToggle = showsCompletionToggle
+        self.onToggleCompletion = onToggleCompletion
+        self.onOpenDetails = onOpenDetails
     }
 
     @EnvironmentObject private var appConfig: AppConfig
@@ -523,89 +530,126 @@ private struct CalendarHabitRowView: View {
         habit.estaCompletado(en: referenceDate) && !habit.debeRealizarse(en: referenceDate)
     }
 
+    private var isCompletedOnReferenceDay: Bool {
+        habit.estaCompletado(en: referenceDate)
+    }
+
+    private var isCompletedSectionRow: Bool {
+        rowKind == .completed
+    }
+
+    private var completedTitleLeadingInset: CGFloat {
+        // Ancho del icono + spacing, para alinear el resto del contenido con el inicio del título.
+        isCompletedSectionRow ? 24 : 0
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            if showsCheckmark {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .padding(.top, 2)
+            if showsCompletionToggle {
+                Button {
+                    onToggleCompletion?()
+                } label: {
+                    Image(systemName: isCompletedOnReferenceDay ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(isCompletedOnReferenceDay ? Color.accentColor : Color.secondary)
+                        .padding(.top, 2)
+                }
+                .buttonStyle(.borderless)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(habit.title)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                // Frecuencia (similar a la lista)
-                HStack(spacing: 4) {
-                    Text(habit.tipoFrecuenciaActual == .semanal ? "Semanal:" : "Mensual:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    if habit.tipoFrecuenciaActual == .semanal && !habit.diasSemana.isEmpty {
-                        HStack(spacing: 2) {
-                            ForEach(habit.diasConfigurados) { dia in
-                                let isReferenceDay = calendar.component(.weekday, from: referenceDate) == dia.rawValue
-                                let isDone = isReferenceDay && habit.estaCompletado(en: referenceDate)
-                                Text(dia.nombreCorto)
-                                    .font(.caption2.weight(.medium))
-                                    .frame(width: 18, height: 18)
-                                    .background(isDone ? Color.accentColor.opacity(0.18) : AppStyle.subtleFill)
-                                    .foregroundStyle(isDone ? .primary : .secondary)
-                                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                            }
+            Button {
+                onOpenDetails?()
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        if isCompletedSectionRow {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.body)
+                                .foregroundStyle(.green)
+                                .frame(width: 18, alignment: .leading)
                         }
-                    } else if habit.tipoFrecuenciaActual == .mensual && !habit.diasMes.isEmpty {
-                        Text(formatDiasMes(habit.diasMes))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+
+                        Text(habit.title)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
                     }
 
-                    Text("(\(habit.vecesPorPeriodoActual)x)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Frecuencia (similar a la lista)
+                        HStack(spacing: 4) {
+                            Text(habit.tipoFrecuenciaActual == .semanal ? "Semanal:" : "Mensual:")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
 
-                // Categoría
-                if let categoryId = habit.categoria,
-                   let category = CategoryModel.allCategories.first(where: { $0.id == categoryId }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: category.iconName)
-                            .font(.caption)
-                        Text(category.name)
-                            .font(.caption)
-                    }
-                    .foregroundStyle(category.color)
-                }
+                            if habit.tipoFrecuenciaActual == .semanal && !habit.diasSemana.isEmpty {
+                                HStack(spacing: 2) {
+                                    ForEach(habit.diasConfigurados) { dia in
+                                        let isReferenceDay = calendar.component(.weekday, from: referenceDate) == dia.rawValue
+                                        let isDone = isReferenceDay && habit.estaCompletado(en: referenceDate)
+                                        Text(dia.nombreCorto)
+                                            .font(.caption2.weight(.medium))
+                                            .frame(width: 18, height: 18)
+                                            .background(isDone ? Color.accentColor.opacity(0.18) : AppStyle.subtleFill)
+                                            .foregroundStyle(isDone ? .primary : .secondary)
+                                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    }
+                                }
+                            } else if habit.tipoFrecuenciaActual == .mensual && !habit.diasMes.isEmpty {
+                                Text(formatDiasMes(habit.diasMes))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
 
-                if appConfig.showDueDates, let dueDate = habit.fechaFin {
-                    Text("Vence: \(dueDate.formatted(date: .abbreviated, time: .shortened))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                            Text("(\(habit.vecesPorPeriodoActual)x)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
 
-                if appConfig.showPriorities, let priority = habit.prioridad {
-                    Text("Prioridad: \(priority.rawValue)")
-                        .font(.caption)
-                        .foregroundStyle(priorityColor(for: priority))
-                }
+                        // Categoría
+                        if let categoryId = habit.categoria,
+                           let category = CategoryModel.allCategories.first(where: { $0.id == categoryId }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: category.iconName)
+                                    .font(.caption)
+                                Text(category.name)
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(category.color)
+                        }
 
-                if appConfig.enableReminders, let reminderDate = habit.reminderDate {
-                    Label("Recordatorio: \(reminderDate.formatted(date: .abbreviated, time: .shortened))", systemImage: "bell")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                        if appConfig.showDueDates, let dueDate = habit.fechaFin {
+                            Text("Vence: \(dueDate.formatted(date: .abbreviated, time: .shortened))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if appConfig.showPriorities, let priority = habit.prioridad {
+                            Text("Prioridad: \(priority.rawValue)")
+                                .font(.caption)
+                                .foregroundStyle(priorityColor(for: priority))
+                        }
+
+                        if appConfig.enableReminders, let reminderDate = habit.reminderDate {
+                            Label("Recordatorio: \(reminderDate.formatted(date: .abbreviated, time: .shortened))", systemImage: "bell")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
 
 #if os(iOS)
-                if isCompletedOutsideScheduledDay {
-                    Text("Completado fuera de fecha establecida")
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
-                        .padding(.top, 6)
-                }
+                        if isCompletedOutsideScheduledDay {
+                            Text("Completado fuera de fecha establecida")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .padding(.top, 6)
+                        }
 #endif
+                    }
+                    .padding(.leading, completedTitleLeadingInset)
+                }
             }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             // igual que en la lista
             ForEach(0..<PluginRegistry.shared.getHabitoRowViews(for: habit).count, id: \.self) { index in
@@ -614,16 +658,36 @@ private struct CalendarHabitRowView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .appCard(padding: 14)
-        .contentShape(Rectangle())
 #if os(macOS)
-        .overlay(alignment: .topTrailing) {
+        .overlay {
             if isCompletedOutsideScheduledDay {
-                Text("Completado fuera de fecha establecida")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .padding(10)
+                if isCompletedSectionRow {
+                    VStack {
+                        Spacer(minLength: 0)
+                        HStack {
+                            Spacer(minLength: 0)
+                            Text("Completado fuera de fecha establecida")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .padding(10)
+                        }
+                    }
+                } else {
+                    VStack {
+                        HStack {
+                            Spacer(minLength: 0)
+                            Text("Completado fuera de fecha establecida")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .padding(10)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                }
             }
         }
 #endif
@@ -631,6 +695,9 @@ private struct CalendarHabitRowView: View {
 
     private func formatDiasMes(_ dias: [Int]) -> String {
         if dias.isEmpty { return "" }
+        if dias.count == 1 {
+            return "Día \(dias[0])"
+        }
         if dias.count <= 3 {
             return "Días " + dias.map { String($0) }.joined(separator: ", ")
         }

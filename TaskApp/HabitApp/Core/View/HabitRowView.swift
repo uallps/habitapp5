@@ -94,6 +94,9 @@ struct HabitRowView: View {
     
     private func formatDiasMes(_ dias: [Int]) -> String {
         if dias.isEmpty { return "" }
+        if dias.count == 1 {
+            return "Día " + String(dias[0])
+        }
         if dias.count <= 3 {
             return "Días " + dias.map { String($0) }.joined(separator: ", ")
         }
