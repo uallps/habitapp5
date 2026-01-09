@@ -233,16 +233,19 @@ struct HabitDetailView: View {
             // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
             if !pluginDetailViews.isEmpty {
                 ForEach(pluginDetailViews.indices, id: \.self) { index in
-                    Section {
+                        Section {
                         #if os(macOS)
-                        HStack(spacing: 0) {
+                            HStack(spacing: 0) {
+                                pluginDetailViews[index]
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Spacer(minLength: 0)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        #else
                             pluginDetailViews[index]
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Spacer(minLength: 0)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        #else
-                        pluginDetailViews[index]
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         #endif
                     }
                 }
