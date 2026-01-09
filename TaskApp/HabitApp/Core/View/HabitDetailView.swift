@@ -107,149 +107,137 @@ struct HabitDetailView: View {
             }
 
             Section(header: AppSectionHeader(title: "Frecuencia")) {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Selector de tipo de frecuencia
-                    Picker("Tipo de frecuencia", selection: Binding(
-                        get: { habit.tipoFrecuencia ?? .semanal },
-                        set: { habit.tipoFrecuencia = $0 }
-                    )) {
-                        ForEach(TipoFrecuencia.allCases, id: \.self) { tipo in
-                            Text(tipo.rawValue).tag(tipo)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: habit.tipoFrecuencia) { _, _ in
-                        // Limpiar configuración al cambiar de tipo
-                        habit.diasSemana = []
-                        habit.diasMes = []
-                        habit.vecesPorPeriodo = 1
-                    }
-
-                    // Selector de veces por periodo
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Veces por \(habit.tipoFrecuenciaActual == .semanal ? "semana" : "mes")")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
-                        Stepper(value: Binding(
-                            get: { habit.vecesPorPeriodo ?? 1 },
-                            set: { newValue in
-                                let diasActuales = habit.tipoFrecuenciaActual == .semanal ? habit.diasSemana.count : habit.diasMes.count
-                                // Solo permitir cambiar si el nuevo valor es mayor o igual a los días seleccionados
-                                if newValue >= diasActuales {
-                                    habit.vecesPorPeriodo = newValue
-                                }
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Selector de tipo de frecuencia
+                        Picker("Tipo de frecuencia", selection: Binding(
+                            get: { habit.tipoFrecuencia ?? .semanal },
+                            set: { habit.tipoFrecuencia = $0 }
+                        )) {
+                            ForEach(TipoFrecuencia.allCases, id: \.self) { tipo in
+                                Text(tipo.rawValue).tag(tipo)
                             }
-                        ),
-                               in: 1...(habit.tipoFrecuenciaActual == .semanal ? 7 : 31)) {
-                                      Text("\(habit.vecesPorPeriodoActual) \(habit.vecesPorPeriodoActual == 1 ? "vez" : "veces")")
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: habit.tipoFrecuencia) { _, _ in
+                            // Limpiar configuración al cambiar de tipo
+                            habit.diasSemana = []
+                            habit.diasMes = []
+                            habit.vecesPorPeriodo = 1
                         }
 
-                        // Advertencia si hay días seleccionados que impiden reducir el número
-                        let diasSeleccionados = habit.tipoFrecuenciaActual == .semanal ? habit.diasSemana.count : habit.diasMes.count
-                        if diasSeleccionados > 0 && habit.vecesPorPeriodoActual <= diasSeleccionados {
-                            Text("Deselecciona días para poder reducir el número de veces")
-                                .font(.caption)
-                                .foregroundStyle(.tint)
+                        // Selector de veces por periodo
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Veces por \(habit.tipoFrecuenciaActual == .semanal ? "semana" : "mes")")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Stepper(value: Binding(
+                                get: { habit.vecesPorPeriodo ?? 1 },
+                                set: { newValue in
+                                    let diasActuales = habit.tipoFrecuenciaActual == .semanal ? habit.diasSemana.count : habit.diasMes.count
+                                    // Solo permitir cambiar si el nuevo valor es mayor o igual a los días seleccionados
+                                    if newValue >= diasActuales {
+                                        habit.vecesPorPeriodo = newValue
+                                    }
+                                }
+                            ),
+                                   in: 1...(habit.tipoFrecuenciaActual == .semanal ? 7 : 31)) {
+                                          Text("\(habit.vecesPorPeriodoActual) \(habit.vecesPorPeriodoActual == 1 ? "vez" : "veces")")
+                            }
+
+                            // Advertencia si hay días seleccionados que impiden reducir el número
+                            let diasSeleccionados = habit.tipoFrecuenciaActual == .semanal ? habit.diasSemana.count : habit.diasMes.count
+                            if diasSeleccionados > 0 && habit.vecesPorPeriodoActual <= diasSeleccionados {
+                                Text("Deselecciona días para poder reducir el número de veces")
+                                    .font(.caption)
+                                    .foregroundStyle(.tint)
+                            }
+                        }
+
+                        Divider()
+
+                        // Selector de días según el tipo
+                        if habit.tipoFrecuenciaActual == .semanal {
+                            frecuenciaSemanalView
+                        } else {
+                            frecuenciaMensualView
                         }
                     }
-
-                    Divider()
-
-                    // Selector de días según el tipo
-                    if habit.tipoFrecuenciaActual == .semanal {
-                        frecuenciaSemanalView
-                    } else {
-                        frecuenciaMensualView
-                    }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
-            }
-
-            // Sección de Notas Diarias
-            Section(header: AppSectionHeader(title: "Notas Diarias")) {
-                DailyNoteView(habit: habit)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-            }
-
-            // Sección de Historial de Completitud
-            Section(header: AppSectionHeader(title: "Historial de Completitud")) {
-                VStack(alignment: .leading, spacing: 8) {
+                
+                // Sección de Notas Diarias
+                Section(header: AppSectionHeader(title: "Notas Diarias")) {
+                    DailyNoteView(habit: habit)
+                }
+                
+                // Sección de Historial de Completitud
+                Section(header: AppSectionHeader(title: "Historial de Completitud")) {
                     if habit.fechaCompletitud.isEmpty {
-                    Text("Aún no has completado este hábito")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("\(habit.fechaCompletitud.count) días completados")
-                        .font(.headline)
-                        
-                    // Mostrar últimos 7 días completados
-                    ForEach(habit.fechaCompletitud.sorted(by: >).prefix(7), id: \.self) { fecha in
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(fecha.formatted(date: .abbreviated, time: .omitted))
-                                if !habit.debeRealizarse(en: fecha) {
-                                    Text("(fuera de días establecidos)")
-                                        .font(.caption2)
-                                        .foregroundStyle(.orange)
+                        Text("Aún no has completado este hábito")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("\(habit.fechaCompletitud.count) días completados")
+                                .font(.headline)
+                            
+                            // Mostrar últimos 7 días completados
+                            ForEach(habit.fechaCompletitud.sorted(by: >).prefix(7), id: \.self) { fecha in
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(fecha.formatted(date: .abbreviated, time: .omitted))
+                                        if !habit.debeRealizarse(en: fecha) {
+                                            Text("(fuera de días establecidos)")
+                                                .font(.caption2)
+                                                .foregroundStyle(.orange)
+                                        }
+                                    }
+                                    Spacer()
+                                    Text(nombreDiaSemana(fecha))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
-                            Spacer()
-                            Text(nombreDiaSemana(fecha))
-                                .font(.caption)
+                            
+                            if habit.fechaCompletitud.count > 7 {
+                                Text("Y \(habit.fechaCompletitud.count - 7) días más...")
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        
-                        if habit.fechaCompletitud.count > 7 {
-                            Text("Y \(habit.fechaCompletitud.count - 7) días más...")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 
-            }
-
-            // Sección de Racha
-            Section(header: AppSectionHeader(title: "Racha")) {
-                StreakSectionView(habit: $habit)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                // Sección de Racha
+                Section(header: AppSectionHeader(title: "Racha")) {
+                    StreakSectionView(habit: $habit)
+                    
+                    // TEMPORAL: Helper para probar rachas
+                    // Comentar o eliminar esta línea cuando no hagamos debug de rachas
+                    StreakTestHelper(habit: $habit)
+                }
                 
-                // TEMPORAL: Helper para probar rachas
-                // Comentar o eliminar esta línea cuando no hagamos debug de rachas
-                StreakTestHelper(habit: $habit)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-            }
-
-            // Sección dinámica de plugins
-            // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
-            if !pluginDetailViews.isEmpty {
-                ForEach(pluginDetailViews.indices, id: \.self) { index in
+                // Sección dinámica de plugins
+                // Si hay plugins activos (ej: Rutinas), sus vistas aparecen automáticamente
+                if !pluginDetailViews.isEmpty {
+                    ForEach(pluginDetailViews.indices, id: \.self) { index in
                         Section {
-                        #if os(macOS)
+                            #if os(macOS)
                             HStack(spacing: 0) {
                                 pluginDetailViews[index]
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 Spacer(minLength: 0)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        #else
+                            #else
                             pluginDetailViews[index]
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        #endif
+                            #endif
+                        }
                     }
                 }
-            }
         }
     }
 
