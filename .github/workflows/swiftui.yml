@@ -18,6 +18,7 @@ jobs:
 
       # -------- macOS --------
       - name: Build AppCore (macOS)
+        working-directory: TaskApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
@@ -27,6 +28,7 @@ jobs:
             clean build
 
       - name: Build AppFull (macOS)
+        working-directory: TaskApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
@@ -37,19 +39,21 @@ jobs:
 
       # -------- iOS --------
       - name: Build AppCore (iOS)
+        working-directory: TaskApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
             -scheme AppCore \
-            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
       - name: Build AppFull (iOS)
+        working-directory: TaskApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
             -scheme AppFull \
-            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             CODE_SIGNING_ALLOWED=NO \
             clean build
