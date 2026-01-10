@@ -47,7 +47,7 @@ jobs:
           xcodebuild \
             -project HabitApp.xcodeproj \
             -scheme AppCore \
-            -destination 'platform=iOS Simulator,name=iPhone 14' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
@@ -57,6 +57,6 @@ jobs:
           xcodebuild \
             -project HabitApp.xcodeproj \
             -scheme AppFull \
-            -destination 'platform=iOS Simulator,name=iPhone 14' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             clean build
