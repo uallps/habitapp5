@@ -57,6 +57,8 @@ class RutinaViewModel: ObservableObject {
         if let index = rutinas.firstIndex(where: { $0.id == rutina.id }) {
             rutinas[index] = rutina
             await saveRutinas()
+            // Forzar notificación de cambio
+            objectWillChange.send()
         }
     }
     

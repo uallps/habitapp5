@@ -6,6 +6,7 @@ struct HabitRowView: View {
     let toggleCompletion : () -> Void
     
     @EnvironmentObject private var AppConfig: AppConfig
+    @ObservedObject private var pluginRegistry = PluginRegistry.shared
     
     var body: some View {
         HStack {

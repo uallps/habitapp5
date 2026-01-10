@@ -62,23 +62,12 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     
     // MARK: - Implementación de ViewPlugin
     
+    @MainActor
     func habitRowView(for habito: Habito) -> some View {
-        HStack(spacing: 4) {
-            let rutinasCount = viewModel.getRutinasConHabito(habitoId: habito.id).count
-            if rutinasCount > 0 {
-                Image(systemName: "list.bullet.circle.fill")
-                    .font(.caption2)
-                    .foregroundColor(.purple)
-                Text("\(rutinasCount)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .task {
-            await self.viewModel.loadRutinas()
-        }
+        RutinaHabitRowView(habito: habito, viewModel: viewModel)
     }
     
+    @MainActor
     func habitDetailView(for habito: Binding<Habito>) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             let rutinas = viewModel.getRutinasConHabito(habitoId: habito.wrappedValue.id)
@@ -113,6 +102,7 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
         .padding(.vertical, 8)
     }
     
+    @MainActor
     func settingsView() -> some View {
         VStack(alignment: .leading, spacing: 12) {
             // Toggle para habilitar/deshabilitar el plugin
@@ -160,12 +150,14 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
         }
     }
     
+    @MainActor
     func mainNavigationView() -> (title: String, view: AnyView)? {
         return ("Rutinas", AnyView(RutinaListView(config: config)))
     }
     
     // MARK: - Implementación de DataPlugin
     
+    @MainActor
     func willDeleteHabito(_ habito: Habito) async {
         print("[Rutinas] Hábito '\(habito.title)' será eliminado")
         let rutinas = viewModel.getRutinasConHabito(habitoId: habito.id)
@@ -174,19 +166,23 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
         }
     }
     
+    @MainActor
     func didDeleteHabito(habitoId: UUID) async {
         print("[Rutinas] Eliminando hábito \(habitoId) de todas las rutinas")
         await viewModel.removeHabitoFromRutinas(habitoId: habitoId)
     }
     
+    @MainActor
     func willUpdateHabito(_ habito: Habito) async {
         // No necesitamos hacer nada antes de actualizar
     }
     
+    @MainActor
     func didUpdateHabito(_ habito: Habito) async {
         // Las rutinas mantienen referencias por ID, no necesitan actualización
     }
     
+    @MainActor
     func didCreateHabito(_ habito: Habito) async {
         print("[Rutinas] Nuevo hábito '\(habito.title)' disponible para rutinas")
     }
@@ -209,5 +205,28 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
             green: Double(g) / 255,
             blue: Double(b) / 255
         )
+    }
+}
+
+// MARK: - Vista Auxiliar para Fila de Hábito
+private struct RutinaHabitRowView: View {
+    let habito: Habito
+    @ObservedObject var viewModel: RutinaViewModel
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            let rutinasCount = viewModel.getRutinasConHabito(habitoId: habito.id).count
+            if rutinasCount > 0 {
+                Image(systemName: "list.bullet.circle.fill")
+                    .font(.caption2)
+                    .foregroundColor(.purple)
+                Text("\(rutinasCount)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .task {
+            await viewModel.loadRutinas()
+        }
     }
 }
