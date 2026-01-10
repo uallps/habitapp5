@@ -6,10 +6,40 @@ struct HabitDetailView: View {
 
         return Form {
             Section {
-                TextField("Título del hábito", text: $habit.title)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Título")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    
+                    TextField("", text: $habit.title)
+                        #if os(iOS)
+                        .textInputAutocapitalization(.sentences)
+                        #endif
+                }
+                .padding(.vertical, 4)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Descripción")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    
+                    TextField(
+                        "",
+                        text: Binding(
+                            get: { habit.descripcion ?? "" },
+                            set: { newValue in
+                                let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                                habit.descripcion = trimmed.isEmpty ? nil : newValue
+                            }
+                        ),
+                        axis: .vertical
+                    )
+                    .lineLimit(3...6)
                     #if os(iOS)
                     .textInputAutocapitalization(.sentences)
                     #endif
+                }
+                .padding(.vertical, 4)
             }
 
             Section(header: AppSectionHeader(title: "Categoría")) {

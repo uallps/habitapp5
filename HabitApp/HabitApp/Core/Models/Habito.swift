@@ -82,10 +82,14 @@ class Habito: Identifiable, Codable {
     var reminderDate: Date?
     var categoria: UUID? // ID de la categoría seleccionada
     
-    init(title: String, descripcion: String, prioridad: Prioridad? = nil, fechaInicio: Date? = nil, fechaFin: Date? = nil, tipoFrecuencia: TipoFrecuencia? = .semanal, vecesPorPeriodo: Int? = 1, diasSemana: [Int] = [], diasMes: [Int] = [], fechaCompletitud: [Date] = [], categoria: UUID? = nil) {
+    init(title: String, descripcion: String? = nil, prioridad: Prioridad? = nil, fechaInicio: Date? = nil, fechaFin: Date? = nil, tipoFrecuencia: TipoFrecuencia? = .semanal, vecesPorPeriodo: Int? = 1, diasSemana: [Int] = [], diasMes: [Int] = [], fechaCompletitud: [Date] = [], categoria: UUID? = nil) {
         self.id = UUID()
         self.title = title
-        self.descripcion = descripcion
+        if let descripcion, !descripcion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            self.descripcion = descripcion
+        } else {
+            self.descripcion = nil
+        }
         self.prioridad = prioridad
         self.fechaInicio = fechaInicio
         self.fechaFin = fechaFin

@@ -10,7 +10,7 @@ struct CalendarView: View {
 
     @State private var displayedMonth: Date = Calendar.current.startOfDay(for: Date())
     @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
-    @State private var draftHabit: Habito = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
+    @State private var draftHabit: Habito = Habito(title: "Nuevo Hábito", descripcion: nil)
     @State private var isPresentingNewHabit = false
     @State private var lastNewHabitPresentationAt: Date = .distantPast
     @State private var habitPendingDeletion: Habito? = nil
@@ -626,7 +626,7 @@ struct CalendarView: View {
 
         let dayOfMonth = calendar.component(.day, from: selectedDayKey)
 
-        let habit = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
+        let habit = Habito(title: "Nuevo Hábito", descripcion: nil)
         habit.tipoFrecuencia = .mensual
         habit.vecesPorPeriodo = 1
         habit.diasSemana = []
@@ -638,7 +638,7 @@ struct CalendarView: View {
 
     private func resetDraftHabit() {
         // Preparar un borrador limpio para la próxima creación.
-        draftHabit = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
+        draftHabit = Habito(title: "Nuevo Hábito", descripcion: nil)
     }
 
     private func isHabitActive(_ habit: Habito, on day: Date) -> Bool {

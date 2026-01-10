@@ -200,7 +200,7 @@ struct HabitListView: View {
     }
     
     private func addNewHabit() {
-        let newHabit = Habito(title: "Nuevo Hábito", descripcion: "Descripcion")
+        let newHabit = Habito(title: "Nuevo Hábito")
 
         Task { @MainActor in
             withTransaction(Transaction(animation: nil)) {
