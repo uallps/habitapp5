@@ -6,10 +6,10 @@ import Combine
 protocol HabitFilterProvider: FeaturePlugin {
     /// Vista de filtros que provee el plugin
     /// - Parameter categories: categorías disponibles en la app
-    func filterView(categories: [CategoryModel]) -> AnyView
+    @MainActor func filterView(categories: [CategoryModel]) async -> AnyView
 
     /// Aplica el filtro a la lista de hábitos
-    func applyFilter(to habits: [Habito]) -> [Habito]
+    @MainActor func applyFilter(to habits: [Habito]) async -> [Habito]
 
     /// Publisher que emite cuando cambia el estado del filtro
     var filterDidChange: AnyPublisher<Void, Never> { get }

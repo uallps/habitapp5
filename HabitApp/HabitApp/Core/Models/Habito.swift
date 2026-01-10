@@ -57,7 +57,7 @@ class Habito: Identifiable, Codable {
         case id, title, descripcion, prioridad, fechaInicio, fechaFin, fechaCompletitud, reminderDate, categoria, tipoFrecuencia, vecesPorPeriodo, diasSemana, diasMes
     }
     
-    let id: UUID
+    var id: UUID
     var title: String
     var descripcion: String?
     var prioridad: Prioridad?

@@ -22,9 +22,10 @@ struct HabitListView: View {
         _viewModel = StateObject(wrappedValue: HabitListViewModel(storageProvider: storageProvider))
     }
     
+    @State private var cachedFilteredHabits: [Habito] = []
+    
     private var filteredHabits: [Habito] {
-        guard let provider = filterProvider, provider.isEnabled else { return viewModel.habitos }
-        return provider.applyFilter(to: viewModel.habitos)
+        return cachedFilteredHabits.isEmpty ? viewModel.habitos : cachedFilteredHabits
     }
     
     var body: some View {
@@ -42,7 +43,7 @@ struct HabitListView: View {
             // Filtro completamente fuera de la List
             if let provider = filterProvider, provider.isEnabled {
                 ScrollView {
-                    provider.filterView(categories: availableCategories)
+                    FilterViewWrapper(provider: provider, categories: availableCategories)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                 }
@@ -109,13 +110,20 @@ struct HabitListView: View {
             await viewModel.loadHabits()
             setupFilter()
             loadCategories()
+            await applyFilters()
         }
         .onReceive(pluginRegistry.objectWillChange) { _ in
             setupFilter()
             filterRefreshToggle.toggle()
+            Task { @MainActor in
+                await applyFilters()
+            }
         }
         .onReceive(filterChangePublisher) { _ in
             filterRefreshToggle.toggle()
+            Task { @MainActor in
+                await applyFilters()
+            }
         }
     }
     
@@ -240,12 +248,41 @@ struct HabitListView: View {
     private func loadCategories() {
         availableCategories = CategoryModel.allCategories
     }
+    
+    @MainActor
+    private func applyFilters() async {
+        guard let provider = filterProvider, provider.isEnabled else {
+            cachedFilteredHabits = viewModel.habitos
+            return
+        }
+        cachedFilteredHabits = await provider.applyFilter(to: viewModel.habitos)
+    }
 
     private var filterChangePublisher: AnyPublisher<Void, Never> {
         if let provider = filterProvider {
             return provider.filterDidChange
         }
         return Empty(completeImmediately: false).eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Filter View Wrapper
+private struct FilterViewWrapper: View {
+    let provider: HabitFilterProvider
+    let categories: [CategoryModel]
+    @State private var filterView: AnyView?
+    
+    var body: some View {
+        Group {
+            if let view = filterView {
+                view
+            } else {
+                ProgressView()
+            }
+        }
+        .task {
+            filterView = await provider.filterView(categories: categories)
+        }
     }
 }
 

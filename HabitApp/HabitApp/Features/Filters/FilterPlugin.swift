@@ -63,7 +63,7 @@ final class FilterPlugin: ViewPlugin, HabitFilterProvider {
     
     /// Provee la vista de filtros para mostrar en HabitListView
     @MainActor
-    func filterView(categories: [CategoryModel]) -> AnyView {
+    func filterView(categories: [CategoryModel]) async -> AnyView {
         guard isEnabled else { return AnyView(EmptyView()) }
         return AnyView(
             FilterView(viewModel: filterViewModel, availableCategories: categories)
@@ -72,7 +72,7 @@ final class FilterPlugin: ViewPlugin, HabitFilterProvider {
     
     /// Aplica el filtro a un array de hábitos
     @MainActor
-    func applyFilter(to habits: [Habito]) -> [Habito] {
+    func applyFilter(to habits: [Habito]) async -> [Habito] {
         guard isEnabled else { return habits }
         return filterViewModel.filterHabits(habits)
     }
