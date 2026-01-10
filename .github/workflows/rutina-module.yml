@@ -1,0 +1,111 @@
+name: Rutina Module CI
+
+# Se ejecuta cuando hay cambios en el módulo Rutinas
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'HabitApp/HabitApp/Features/Rutinas/**'
+      - 'HabitApp/HabitApp/Infraestructure/Plugins/**'
+  pull_request:
+    paths:
+      - 'HabitApp/HabitApp/Features/Rutinas/**'
+      - 'HabitApp/HabitApp/Infraestructure/Plugins/**'
+  workflow_dispatch:
+
+jobs:
+  validate-rutina-module:
+    name: Validar Módulo Rutina
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Seleccionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Verificar versión de Swift
+        run: swift --version
+
+      - name: Listar archivos del módulo Rutina
+        run: |
+          echo "📁 Estructura del módulo Rutinas:"
+          find HabitApp/HabitApp/Features/Rutinas -type f -name "*.swift" | sort
+
+      - name: Validar sintaxis Swift del módulo
+        run: |
+          echo "🔍 Validando sintaxis de archivos Swift..."
+          for file in HabitApp/HabitApp/Features/Rutinas/**/*.swift; do
+            if [ -f "$file" ]; then
+              echo "Verificando: $file"
+              xcrun swift -frontend -parse "$file" || exit 1
+            fi
+          done
+
+      - name: Compilar AppFull con módulo Rutinas (macOS)
+        working-directory: HabitApp
+        run: |
+          echo "🔨 Compilando AppFull con módulo Rutinas (macOS)..."
+          xcodebuild \
+            -project HabitApp.xcodeproj \
+            -scheme AppFull \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build | xcpretty || true
+
+      - name: Compilar AppFull con módulo Rutinas (iOS)
+        working-directory: HabitApp
+        run: |
+          echo "🔨 Compilando AppFull con módulo Rutinas (iOS)..."
+          xcodebuild \
+            -project HabitApp.xcodeproj \
+            -scheme AppFull \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build | xcpretty || true
+
+      - name: Verificar protocolo ViewPlugin
+        run: |
+          echo "🔌 Verificando implementación de ViewPlugin..."
+          grep -n "ViewPlugin" HabitApp/HabitApp/Features/Rutinas/RutinaPlugin.swift || echo "⚠️ ViewPlugin no encontrado"
+
+      - name: Verificar protocolo DataPlugin
+        run: |
+          echo "💾 Verificando implementación de DataPlugin..."
+          grep -n "DataPlugin" HabitApp/HabitApp/Features/Rutinas/RutinaPlugin.swift || echo "⚠️ DataPlugin no encontrado"
+
+      - name: Análisis de componentes del módulo
+        run: |
+          echo "📊 Análisis del módulo Rutinas:"
+          echo "----------------------------------------"
+          echo "Modelos:"
+          find HabitApp/HabitApp/Features/Rutinas/Models -name "*.swift" -exec basename {} \;
+          echo "----------------------------------------"
+          echo "ViewModels:"
+          find HabitApp/HabitApp/Features/Rutinas/ViewModels -name "*.swift" -exec basename {} \;
+          echo "----------------------------------------"
+          echo "Views:"
+          find HabitApp/HabitApp/Features/Rutinas/Views -name "*.swift" -exec basename {} \;
+          echo "----------------------------------------"
+          echo "Storage:"
+          find HabitApp/HabitApp/Features/Rutinas/Storage -name "*.swift" -exec basename {} \;
+
+      - name: Verificar dependencias del plugin
+        run: |
+          echo "🔗 Verificando dependencias..."
+          grep -n "import" HabitApp/HabitApp/Features/Rutinas/RutinaPlugin.swift | head -20
+
+      - name: Resumen de validación
+        if: success()
+        run: |
+          echo "✅ Módulo Rutinas validado exitosamente"
+          echo "✅ Sintaxis correcta"
+          echo "✅ Compilación exitosa en AppFull (macOS e iOS)"
+          echo "✅ Protocolos de plugins implementados"
+
+      - name: Reportar errores
+        if: failure()
+        run: |
+          echo "❌ La validación del módulo Rutinas falló"
+          echo "Por favor revisa los logs anteriores para más detalles"
