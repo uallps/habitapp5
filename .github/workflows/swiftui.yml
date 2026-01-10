@@ -18,7 +18,7 @@ jobs:
 
       # -------- macOS --------
       - name: Build AppCore (macOS)
-        working-directory: TaskApp
+        working-directory: HabitApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
@@ -28,7 +28,7 @@ jobs:
             clean build
 
       - name: Build AppFull (macOS)
-        working-directory: TaskApp
+        working-directory: HabitApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
@@ -39,7 +39,7 @@ jobs:
 
       # -------- iOS --------
       - name: Build AppCore (iOS)
-        working-directory: TaskApp
+        working-directory: HabitApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
@@ -49,7 +49,7 @@ jobs:
             clean build
 
       - name: Build AppFull (iOS)
-        working-directory: TaskApp
+        working-directory: HabitApp
         run: |
           xcodebuild \
             -project HabitApp.xcodeproj \
