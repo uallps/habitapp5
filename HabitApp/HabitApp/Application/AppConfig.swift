@@ -8,14 +8,23 @@ import SwiftUI
 import Combine
 
 class AppConfig: ObservableObject {
-    @AppStorage("showDueDates")
-    var showDueDates: Bool = true
-
     @AppStorage("showPriorities")
     var showPriorities: Bool = true
 
     @AppStorage("enableReminders")
     var enableReminders: Bool = true
+
+    @AppStorage("enableStreaks")
+    var enableStreaks: Bool = true
+
+    @AppStorage("enableDailyNotes")
+    var enableDailyNotes: Bool = true
+
+    @AppStorage("enableCategories")
+    var enableCategories: Bool = true
+
+    @AppStorage("enableStatistics")
+    var enableStatistics: Bool = true
 
     @AppStorage("storageType")
     var storageType: StorageType = .json

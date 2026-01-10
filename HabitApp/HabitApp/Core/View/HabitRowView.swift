@@ -54,7 +54,8 @@ struct HabitRowView: View {
                 .padding(.top, 2)
                 
                 // Mostrar categoría si existe
-                if let categoryId = habit.categoria,
+                if AppConfig.enableCategories,
+                   let categoryId = habit.categoria,
                    let category = CategoryModel.allCategories.first(where: { $0.id == categoryId }) {
                     HStack(spacing: 4) {
                         Image(systemName: category.iconName)
@@ -65,7 +66,7 @@ struct HabitRowView: View {
                     .foregroundColor(category.color)
                 }
                 
-                if AppConfig.showDueDates, let dueDate = habit.fechaFin {
+                if let dueDate = habit.fechaFin {
                     Text("Vence: \(dueDate.formatted(date: .abbreviated, time: .shortened))")
                         .font(.caption)
                         .foregroundColor(.secondary)

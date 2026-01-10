@@ -42,9 +42,10 @@ struct HabitDetailView: View {
                 .padding(.vertical, 4)
             }
 
-            Section(header: AppSectionHeader(title: "Categoría")) {
-                Button {
-                    showCategorySelection = true
+            if AppConfig.enableCategories {
+                Section(header: AppSectionHeader(title: "Categoría")) {
+                    Button {
+                        showCategorySelection = true
                 } label: {
                     HStack {
                         if let categoryModel = selectedCategoryModel {
@@ -79,6 +80,7 @@ struct HabitDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     #endif
                 }
+                }
             }
 
             Section(header: AppSectionHeader(title: "Fechas")) {
@@ -94,28 +96,26 @@ struct HabitDetailView: View {
                     .labelsHidden()
                 }
 
-                if AppConfig.showDueDates {
-                    Toggle(isOn: Binding(
-                        get: { habit.fechaFin != nil },
-                        set: { newValue in
-                            habit.fechaFin = newValue ? (habit.fechaFin ?? Date()) : nil
-                        }
-                    )) {
-                        Text("Vencimiento")
+                Toggle(isOn: Binding(
+                    get: { habit.fechaFin != nil },
+                    set: { newValue in
+                        habit.fechaFin = newValue ? (habit.fechaFin ?? Date()) : nil
                     }
+                )) {
+                    Text("Vencimiento")
+                }
 
-                    if let dueDate = habit.fechaFin {
-                        LabeledContent("Fecha") {
-                            DatePicker(
-                                "",
-                                selection: Binding(
-                                    get: { dueDate },
-                                    set: { habit.fechaFin = $0 }
-                                ),
-                                displayedComponents: .date
-                            )
-                            .labelsHidden()
-                        }
+                if let dueDate = habit.fechaFin {
+                    LabeledContent("Fecha") {
+                        DatePicker(
+                            "",
+                            selection: Binding(
+                                get: { dueDate },
+                                set: { habit.fechaFin = $0 }
+                            ),
+                            displayedComponents: .date
+                        )
+                        .labelsHidden()
                     }
                 }
             }
@@ -197,8 +197,10 @@ struct HabitDetailView: View {
                 }
                 
                 // Sección de Notas Diarias
-                Section(header: AppSectionHeader(title: "Notas Diarias")) {
-                    DailyNoteView(habit: habit)
+                if AppConfig.enableDailyNotes {
+                    Section(header: AppSectionHeader(title: "Notas Diarias")) {
+                        DailyNoteView(habit: habit)
+                    }
                 }
                 
                 // Sección de Historial de Completitud
@@ -242,12 +244,14 @@ struct HabitDetailView: View {
                 }
                 
                 // Sección de Racha
-                Section(header: AppSectionHeader(title: "Racha")) {
-                    StreakSectionView(habit: $habit)
-                    
-                    // TEMPORAL: Helper para probar rachas
-                    // Comentar o eliminar esta línea cuando no hagamos debug de rachas
-                    StreakTestHelper(habit: $habit)
+                if AppConfig.enableStreaks {
+                    Section(header: AppSectionHeader(title: "Racha")) {
+                        StreakSectionView(habit: $habit)
+                        
+                        // TEMPORAL: Helper para probar rachas
+                        // Comentar o eliminar esta línea cuando no hagamos debug de rachas
+                        StreakTestHelper(habit: $habit)
+                    }
                 }
                 
                 // Sección dinámica de plugins

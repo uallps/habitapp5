@@ -18,9 +18,12 @@ struct SettingsView: View {
     private var settingsForm: some View {
         Form {
             Section(header: Text("General")) {
-                Toggle("Show Due Dates", isOn: $appConfig.showDueDates)
                 Toggle("Show Priorities", isOn: $appConfig.showPriorities)
                 Toggle("Enable Reminders", isOn: $appConfig.enableReminders)
+                Toggle("Enable Streaks", isOn: $appConfig.enableStreaks)
+                Toggle("Enable Daily Notes", isOn: $appConfig.enableDailyNotes)
+                Toggle("Enable Categories", isOn: $appConfig.enableCategories)
+                Toggle("Enable Statistics", isOn: $appConfig.enableStatistics)
                 Picker("Storage Type", selection: $appConfig.storageType) {
                     ForEach(StorageType.allCases) { type in
                         Text(type.rawValue).tag(type)

@@ -112,11 +112,13 @@ struct HabitApp: App {
                     }
                     .id("habitos-\(appConfig.storageType.rawValue)")
                 
-                StatisticsView(storageProvider: storageProvider)
-                    .tabItem {
-                        Label("Estadísticas", systemImage: "chart.bar.fill")
-                    }
-                    .id("statistics-\(appConfig.storageType.rawValue)")
+                if appConfig.enableStatistics {
+                    StatisticsView(storageProvider: storageProvider)
+                        .tabItem {
+                            Label("Estadísticas", systemImage: "chart.bar.fill")
+                        }
+                        .id("statistics-\(appConfig.storageType.rawValue)")
+                }
                 
                 // Vistas de navegación proporcionadas por los plugins
                 ForEach(PluginRegistry.shared.getPluginMainNavigationViews(), id: \.id) { nav in
@@ -139,8 +141,10 @@ struct HabitApp: App {
                         Label("Habitos", systemImage: "checklist")
                     }
                     
-                    NavigationLink(value: "estadisticas") {
-                        Label("Estadísticas", systemImage: "chart.bar.fill")
+                    if appConfig.enableStatistics {
+                        NavigationLink(value: "estadisticas") {
+                            Label("Estadísticas", systemImage: "chart.bar.fill")
+                        }
                     }
                     
                     // Links de navegación proporcionados por los plugins

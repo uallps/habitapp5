@@ -781,7 +781,8 @@ private struct CalendarHabitRowView: View {
                         }
 
                         // Categoría
-                        if let categoryId = habit.categoria,
+                        if appConfig.enableCategories,
+                           let categoryId = habit.categoria,
                            let category = CategoryModel.allCategories.first(where: { $0.id == categoryId }) {
                             HStack(spacing: 4) {
                                 Image(systemName: category.iconName)
@@ -792,7 +793,7 @@ private struct CalendarHabitRowView: View {
                             .foregroundStyle(category.color)
                         }
 
-                        if appConfig.showDueDates, let dueDate = habit.fechaFin {
+                        if let dueDate = habit.fechaFin {
                             Text("Vence: \(dueDate.formatted(date: .abbreviated, time: .shortened))")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
