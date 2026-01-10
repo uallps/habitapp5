@@ -2,7 +2,7 @@ name: SwiftUI Multiplatform Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, arreglo ]
   pull_request:
 
 jobs:
