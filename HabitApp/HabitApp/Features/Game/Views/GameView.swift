@@ -17,24 +17,27 @@ struct GameView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    if viewModel.isLoading {
-                        ProgressView("Cargando hábitos...")
-                            .padding()
-                    } else if let error = viewModel.errorMessage {
-                        errorView(error)
-                    } else if viewModel.habitos.isEmpty {
-                        emptyStateView
-                    } else {
-                        habitSelectorSection
-                        levelSection
-                        dragonSpriteSection
-                        shopSection
-                        dragonCollectionSection
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("Cargando hábitos...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let error = viewModel.errorMessage {
+                    errorView(error)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.habitos.isEmpty {
+                    emptyStateView
+                } else {
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            habitSelectorSection
+                            levelSection
+                            dragonSpriteSection
+                            shopSection
+                            dragonCollectionSection
+                        }
+                        .padding()
                     }
                 }
-                .padding()
             }
             .navigationTitle("Juego")
             #if os(iOS)
@@ -223,21 +226,20 @@ struct GameView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "tray.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
-            
-            Text("No hay hábitos")
-                .font(.title3)
-                .fontWeight(.semibold)
-            
+        ContentUnavailableView {
+            Label {
+                Text("No hay hábitos")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+            } icon: {
+                Image(systemName: "tray.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.secondary)
+            }
+        } description: {
             Text("Crea un hábito para empezar a ganar niveles")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private func errorView(_ message: String) -> some View {

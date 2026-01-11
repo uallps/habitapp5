@@ -56,6 +56,24 @@ struct HabitListView: View {
                 }
             }
             .id(filterRefreshToggle)
+            .overlay {
+                if filteredHabits.isEmpty {
+                    ContentUnavailableView {
+                        Label {
+                            Text("No hay hábitos")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        } icon: {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 60))
+                                .foregroundStyle(.secondary)
+                        }
+                    } description: {
+                        Text("Crea un hábito para empezar a organizarte")
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
             .appListContainer()
         }
         .navigationTitle("Hábitos")

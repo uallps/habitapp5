@@ -20,7 +20,7 @@ class PluginDiscovery {
             return []
         }
         
-        print("� Ejecutable: \(executableName)")
+        print("📦 Ejecutable: \(executableName)")
         
         // Obtener todas las clases del runtime
         let expectedClassCount = objc_getClassList(nil, 0)
@@ -38,14 +38,15 @@ class PluginDiscovery {
             if let currentClass = allClasses[Int(i)] {
                 let className = NSStringFromClass(currentClass)
                 
-                // OPTIMIZACIÓN 1: Filtrar solo clases de nuestro módulo/app
-                guard className.hasPrefix(executableName) else {
+                // OPTIMIZACIÓN 1: Filtrar solo clases que empiecen con "App" o "Habit"
+                // Esto soporta cualquier target: AppCore, AppFull, App-Plugin-Rutinas, HabitApp, etc.
+                guard className.hasPrefix("App") || className.hasPrefix("Habit") else {
                     skippedCount += 1
                     continue
                 }
                 
                 checkedCount += 1
-                print("� Revisando clase: \(className)")
+                print("🔍 Revisando clase: \(className)")
                 
                 // Verificar si la clase implementa FeaturePlugin
                 if let pluginType = currentClass as? FeaturePlugin.Type {

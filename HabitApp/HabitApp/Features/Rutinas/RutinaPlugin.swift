@@ -212,10 +212,10 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
 private struct RutinaHabitRowView: View {
     let habito: Habito
     @ObservedObject var viewModel: RutinaViewModel
+    @State private var rutinasCount: Int = 0
     
     var body: some View {
         HStack(spacing: 4) {
-            let rutinasCount = viewModel.getRutinasConHabito(habitoId: habito.id).count
             if rutinasCount > 0 {
                 Image(systemName: "list.bullet.circle.fill")
                     .font(.caption2)
@@ -227,6 +227,7 @@ private struct RutinaHabitRowView: View {
         }
         .task {
             await viewModel.loadRutinas()
+            rutinasCount = viewModel.getRutinasConHabito(habitoId: habito.id).count
         }
     }
 }

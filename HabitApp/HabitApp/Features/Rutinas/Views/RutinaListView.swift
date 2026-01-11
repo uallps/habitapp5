@@ -31,6 +31,7 @@ private struct RutinaListContentView: View {
     @StateObject private var habitListViewModel: HabitListViewModel
     @State private var showingAddRutina = false
     @State private var habitCountCache: [UUID: Int] = [:]
+    @State private var pendingDeletionRutinaIDs: [UUID] = []
 
     @State private var showingExecutionAlert = false
     @State private var executionAlertTitle = ""
@@ -127,16 +128,46 @@ private struct RutinaListContentView: View {
             }
             .overlay {
                 if viewModel.rutinas.isEmpty {
-                    ContentUnavailableView(
-                        "No hay rutinas",
-                        systemImage: "list.bullet.circle",
-                        description: Text("Crea una rutina para agrupar tus hábitos")
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text("No hay rutinas")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                        } icon: {
+                            Image(systemName: "list.bullet.circle")
+                                .font(.system(size: 60))
+                                .foregroundStyle(.secondary)
+                        }
+                    } description: {
+                        Text("Crea una rutina para agrupar tus hábitos")
+                    }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .appListContainer()
             .navigationTitle("Rutinas")
+            .alert(
+                pendingDeletionRutinaIDs.count > 1 ? "Eliminar rutinas" : "Eliminar rutina",
+                isPresented: Binding(
+                    get: { !pendingDeletionRutinaIDs.isEmpty },
+                    set: { if !$0 { pendingDeletionRutinaIDs = [] } }
+                )
+            ) {
+                Button("Eliminar", role: .destructive) {
+                    confirmDeletion()
+                }
+                Button("Cancelar", role: .cancel) {
+                    pendingDeletionRutinaIDs = []
+                }
+            } message: {
+                if pendingDeletionRutinaIDs.count == 1,
+                   let id = pendingDeletionRutinaIDs.first,
+                   let rutina = viewModel.rutinas.first(where: { $0.id == id }) {
+                    Text("¿Seguro que quieres eliminar \"\(rutina.nombre)\"?")
+                } else {
+                    Text("¿Seguro que quieres eliminar \(pendingDeletionRutinaIDs.count) rutinas?")
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -183,11 +214,22 @@ private struct RutinaListContentView: View {
     }
     
     private func deleteRutina(_ rutina: Rutina) {
-        if let index = viewModel.rutinas.firstIndex(where: { $0.id == rutina.id }) {
-            Task {
-                await viewModel.removeRutinas(atOffsets: IndexSet(integer: index))
-                await loadHabitCounts()
-            }
+        pendingDeletionRutinaIDs = [rutina.id]
+    }
+    
+    private func confirmDeletion() {
+        let idsToDelete = pendingDeletionRutinaIDs
+        pendingDeletionRutinaIDs = []
+
+        let originalOffsets = IndexSet(idsToDelete.compactMap { id in
+            viewModel.rutinas.firstIndex(where: { $0.id == id })
+        })
+
+        guard !originalOffsets.isEmpty else { return }
+
+        Task {
+            await viewModel.removeRutinas(atOffsets: originalOffsets)
+            await loadHabitCounts()
         }
     }
     
