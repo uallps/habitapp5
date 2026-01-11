@@ -292,62 +292,84 @@ class StatisticsViewModel: ObservableObject {
     
     /// Calcula completitudes esperadas para hábitos semanales
     private func calculateWeeklyExpectedCompletions(for habit: Habito, from startDate: Date, to endDate: Date, calendar: Calendar) -> Int {
-        // Si hay días configurados Y la cantidad coincide con vecesPorPeriodo
-        if !habit.diasSemana.isEmpty && habit.diasSemana.count == habit.vecesPorPeriodoActual {
-            // Contar cuántos días coinciden en el intervalo
-            var expectedCount = 0
+        let vecesPorSemana = habit.vecesPorPeriodoActual
+        
+        // Si hay fecha fin: calcular según semanas disponibles (lunes-domingo)
+        if habit.fechaFin != nil {
+            var totalExpected = 0
             var currentDate = calendar.startOfDay(for: startDate)
             let finalDate = calendar.startOfDay(for: endDate)
             
             while currentDate <= finalDate {
-                if habit.debeRealizarse(en: currentDate) {
-                    expectedCount += 1
-                }
-                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+                // Obtener inicio de la semana (lunes) para la fecha actual
+                var weekComponents = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: currentDate)
+                weekComponents.weekday = 2 // Lunes
+                let weekStart = calendar.date(from: weekComponents)!
+                let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart)! // Domingo
+                
+                // Determinar el rango efectivo de esta semana
+                let effectiveStart = max(weekStart, currentDate)
+                let effectiveEnd = min(weekEnd, finalDate)
+                
+                // Calcular días usados en esta semana
+                let daysInRange = calendar.dateComponents([.day], from: effectiveStart, to: effectiveEnd).day ?? 0
+                let daysUsed = daysInRange + 1 // +1 para incluir el día final
+                
+                // Para esta semana: usar el mínimo entre días disponibles y veces configuradas
+                let expectedThisWeek = min(daysUsed, vecesPorSemana)
+                totalExpected += expectedThisWeek
+                
+                // Avanzar a la siguiente semana
+                currentDate = calendar.date(byAdding: .day, value: 1, to: effectiveEnd)!
             }
             
-            return expectedCount
+            return totalExpected
         }
         
-        // Si hay fecha fin: calcular semanas en el intervalo × vecesPorPeriodo
-        if habit.fechaFin != nil {
-            let days = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
-            let weeks = Int(ceil(Double(days + 1) / 7.0)) // +1 para incluir el día final
-            return weeks * habit.vecesPorPeriodoActual
-        }
-        
-        // Sin días configurados y sin fecha fin: no se puede calcular
-        return 0
+        // Sin fecha fin: usar vecesPorPeriodo como objetivo de la semana actual
+        return vecesPorSemana
     }
     
     /// Calcula completitudes esperadas para hábitos mensuales
     private func calculateMonthlyExpectedCompletions(for habit: Habito, from startDate: Date, to endDate: Date, calendar: Calendar) -> Int {
-        // Si hay días configurados Y la cantidad coincide con vecesPorPeriodo
-        if !habit.diasMes.isEmpty && habit.diasMes.count == habit.vecesPorPeriodoActual {
-            // Contar cuántos días coinciden en el intervalo
-            var expectedCount = 0
-            var currentDate = calendar.startOfDay(for: startDate)
+        let vecesPorMes = habit.vecesPorPeriodoActual
+        
+        // Si hay fecha fin: calcular según tiempo disponible en cada mes
+        if habit.fechaFin != nil {
+            var currentMonth = calendar.startOfDay(for: startDate)
             let finalDate = calendar.startOfDay(for: endDate)
+            var totalExpected = 0
             
-            while currentDate <= finalDate {
-                if habit.debeRealizarse(en: currentDate) {
-                    expectedCount += 1
-                }
-                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+            while currentMonth <= finalDate {
+                let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: currentMonth))!
+                let nextMonth = calendar.date(byAdding: .month, value: 1, to: monthStart)!
+                let monthEnd = calendar.date(byAdding: .day, value: -1, to: nextMonth)!
+                
+                // Determinar el rango efectivo dentro de este mes
+                let effectiveStart = max(monthStart, startDate)
+                let effectiveEnd = min(monthEnd, finalDate)
+                
+                // Días disponibles en este mes
+                let daysInRange = calendar.dateComponents([.day], from: effectiveStart, to: effectiveEnd).day ?? 0
+                let daysUsed = daysInRange + 1 // +1 para incluir el día final
+                
+                // Para este mes: usar el mínimo entre días disponibles y veces configuradas
+                let expectedThisMonth = min(daysUsed, vecesPorMes)
+                totalExpected += expectedThisMonth
+                
+                // Avanzar al siguiente mes
+                currentMonth = nextMonth
             }
             
-            return expectedCount
+            return totalExpected
         }
         
-        // Si hay fecha fin: calcular meses en el intervalo × vecesPorPeriodo
-        if habit.fechaFin != nil {
-            let components = calendar.dateComponents([.month, .day], from: startDate, to: endDate)
-            let months = (components.month ?? 0) + 1 // +1 para incluir el mes de inicio
-            return months * habit.vecesPorPeriodoActual
-        }
+        // Sin fecha fin: usar vecesPorPeriodo como objetivo del mes actual
+        // Excepción: si vecesPorPeriodo > días del mes actual, usar días del mes
+        let now = Date()
+        let daysInCurrentMonth = calendar.range(of: .day, in: .month, for: now)?.count ?? 30
         
-        // Sin días configurados y sin fecha fin: no se puede calcular
-        return 0
+        return min(vecesPorMes, daysInCurrentMonth)
     }
     
     /// Encuentra la categoría más activa
