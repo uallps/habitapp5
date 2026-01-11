@@ -7,12 +7,208 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		3553F2EB2F1444A9000B64C3 /* App-Plugin-Rutinas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "App-Plugin-Rutinas.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3553F2FA2F1444C0000B64C3 /* App-Plugin-Filtro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "App-Plugin-Filtro.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3553F3092F1444E6000B64C3 /* App-Plugin-Calendario.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "App-Plugin-Calendario.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3553F3182F1444FA000B64C3 /* App-Plugin-Juego.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "App-Plugin-Juego.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		35B69F9C2F11C5580027EC7A /* AppFull.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AppFull.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		35B69FEA2F11D5890027EC7A /* AppCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AppCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		35C015A12E9FF2ED00AA6084 /* HabitApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HabitApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3553F3272F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Rutinas" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Application/AppConfig.swift,
+				Application/HabitApp.swift,
+				Assets.xcassets,
+				Core/Models/Habito,
+				Core/Models/Habito.swift,
+				Core/View/HabitDetailView.swift,
+				Core/View/HabitListView.swift,
+				Core/View/HabitRowView.swift,
+				Core/View/Style/AppStyle.swift,
+				Core/ViewModels/HabitListViewModel.swift,
+				Features/Annotations/Models/DailyNote.swift,
+				Features/Annotations/ViewModels/DailyNoteViewModel.swift,
+				Features/Annotations/Views/DailyNoteView.swift,
+				Features/Annotations/Views/NotesHistoryView.swift,
+				Features/Categories/Models/CategoryModel.swift,
+				Features/Categories/ViewModels/CategorySelectionViewModel.swift,
+				Features/Categories/Views/CategorySelectionView.swift,
+				Features/Reminders/Services/NotificationService.swift,
+				Features/Reminders/ViewModels/ReminderViewModel.swift,
+				Features/Reminders/Views/ReminderEditorView.swift,
+				Features/Rutinas/Models/Rutina.swift,
+				Features/Rutinas/RutinaPlugin.swift,
+				Features/Rutinas/Storage/RutinaStorageProvider.swift,
+				Features/Rutinas/ViewModels/RutinaViewModel.swift,
+				Features/Rutinas/Views/RutinaDetailView.swift,
+				Features/Rutinas/Views/RutinaListView.swift,
+				Features/Rutinas/Views/RutinaRowView.swift,
+				Features/Settings/Views/Settings.swift,
+				Features/Statistics/Models/StatisticsModel.swift,
+				Features/Statistics/ViewModels/StatisticsViewModel.swift,
+				Features/Statistics/Views/StatisticsView.swift,
+				Features/Streaks/ViewModels/StreakCalculator.swift,
+				Features/Streaks/Views/StreakSectionView.swift,
+				Features/Streaks/Views/StreakTestHelper.swift,
+				Infraestructure/Persistence/JSONStorageProvider.swift,
+				Infraestructure/Persistence/MockStorageProvider.swift,
+				Infraestructure/Persistence/StorageProvider.swift,
+				Infraestructure/Persistence/SwiftDataStorageProvider.swift,
+				Infraestructure/Plugins/DataPlugin.swift,
+				Infraestructure/Plugins/FeaturePlugin.swift,
+				Infraestructure/Plugins/HabitFilterProvider.swift,
+				Infraestructure/Plugins/PluginDiscovery.swift,
+				Infraestructure/Plugins/PluginRegistry.swift,
+				Infraestructure/Plugins/ViewPlugin.swift,
+			);
+			target = 3553F2EA2F1444A9000B64C3 /* App-Plugin-Rutinas */;
+		};
+		3553F3282F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Filtro" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Application/AppConfig.swift,
+				Application/HabitApp.swift,
+				Assets.xcassets,
+				Core/Models/Habito,
+				Core/Models/Habito.swift,
+				Core/View/HabitDetailView.swift,
+				Core/View/HabitListView.swift,
+				Core/View/HabitRowView.swift,
+				Core/View/Style/AppStyle.swift,
+				Core/ViewModels/HabitListViewModel.swift,
+				Features/Annotations/Models/DailyNote.swift,
+				Features/Annotations/ViewModels/DailyNoteViewModel.swift,
+				Features/Annotations/Views/DailyNoteView.swift,
+				Features/Annotations/Views/NotesHistoryView.swift,
+				Features/Categories/Models/CategoryModel.swift,
+				Features/Categories/ViewModels/CategorySelectionViewModel.swift,
+				Features/Categories/Views/CategorySelectionView.swift,
+				Features/Filters/FilterPlugin.swift,
+				Features/Filters/Models/FilterState.swift,
+				Features/Filters/ViewModels/FilterViewModel.swift,
+				Features/Filters/Views/FilterSettingsView.swift,
+				Features/Filters/Views/FilterView.swift,
+				Features/Reminders/Services/NotificationService.swift,
+				Features/Reminders/ViewModels/ReminderViewModel.swift,
+				Features/Reminders/Views/ReminderEditorView.swift,
+				Features/Settings/Views/Settings.swift,
+				Features/Statistics/Models/StatisticsModel.swift,
+				Features/Statistics/ViewModels/StatisticsViewModel.swift,
+				Features/Statistics/Views/StatisticsView.swift,
+				Features/Streaks/ViewModels/StreakCalculator.swift,
+				Features/Streaks/Views/StreakSectionView.swift,
+				Features/Streaks/Views/StreakTestHelper.swift,
+				Infraestructure/Persistence/JSONStorageProvider.swift,
+				Infraestructure/Persistence/MockStorageProvider.swift,
+				Infraestructure/Persistence/StorageProvider.swift,
+				Infraestructure/Persistence/SwiftDataStorageProvider.swift,
+				Infraestructure/Plugins/DataPlugin.swift,
+				Infraestructure/Plugins/FeaturePlugin.swift,
+				Infraestructure/Plugins/HabitFilterProvider.swift,
+				Infraestructure/Plugins/PluginDiscovery.swift,
+				Infraestructure/Plugins/PluginRegistry.swift,
+				Infraestructure/Plugins/ViewPlugin.swift,
+			);
+			target = 3553F2F92F1444C0000B64C3 /* App-Plugin-Filtro */;
+		};
+		3553F3292F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Calendario" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Application/AppConfig.swift,
+				Application/HabitApp.swift,
+				Assets.xcassets,
+				Core/Models/Habito,
+				Core/Models/Habito.swift,
+				Core/View/HabitDetailView.swift,
+				Core/View/HabitListView.swift,
+				Core/View/HabitRowView.swift,
+				Core/View/Style/AppStyle.swift,
+				Core/ViewModels/HabitListViewModel.swift,
+				Features/Annotations/Models/DailyNote.swift,
+				Features/Annotations/ViewModels/DailyNoteViewModel.swift,
+				Features/Annotations/Views/DailyNoteView.swift,
+				Features/Annotations/Views/NotesHistoryView.swift,
+				Features/Calendar/CalendarPlugin.swift,
+				Features/Calendar/Views/CalendarView.swift,
+				Features/Categories/Models/CategoryModel.swift,
+				Features/Categories/ViewModels/CategorySelectionViewModel.swift,
+				Features/Categories/Views/CategorySelectionView.swift,
+				Features/Reminders/Services/NotificationService.swift,
+				Features/Reminders/ViewModels/ReminderViewModel.swift,
+				Features/Reminders/Views/ReminderEditorView.swift,
+				Features/Settings/Views/Settings.swift,
+				Features/Statistics/Models/StatisticsModel.swift,
+				Features/Statistics/ViewModels/StatisticsViewModel.swift,
+				Features/Statistics/Views/StatisticsView.swift,
+				Features/Streaks/ViewModels/StreakCalculator.swift,
+				Features/Streaks/Views/StreakSectionView.swift,
+				Features/Streaks/Views/StreakTestHelper.swift,
+				Infraestructure/Persistence/JSONStorageProvider.swift,
+				Infraestructure/Persistence/MockStorageProvider.swift,
+				Infraestructure/Persistence/StorageProvider.swift,
+				Infraestructure/Persistence/SwiftDataStorageProvider.swift,
+				Infraestructure/Plugins/DataPlugin.swift,
+				Infraestructure/Plugins/FeaturePlugin.swift,
+				Infraestructure/Plugins/HabitFilterProvider.swift,
+				Infraestructure/Plugins/PluginDiscovery.swift,
+				Infraestructure/Plugins/PluginRegistry.swift,
+				Infraestructure/Plugins/ViewPlugin.swift,
+			);
+			target = 3553F3082F1444E6000B64C3 /* App-Plugin-Calendario */;
+		};
+		3553F32A2F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Juego" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Application/AppConfig.swift,
+				Application/HabitApp.swift,
+				Assets.xcassets,
+				Core/Models/Habito,
+				Core/Models/Habito.swift,
+				Core/View/HabitDetailView.swift,
+				Core/View/HabitListView.swift,
+				Core/View/HabitRowView.swift,
+				Core/View/Style/AppStyle.swift,
+				Core/ViewModels/HabitListViewModel.swift,
+				Features/Annotations/Models/DailyNote.swift,
+				Features/Annotations/ViewModels/DailyNoteViewModel.swift,
+				Features/Annotations/Views/DailyNoteView.swift,
+				Features/Annotations/Views/NotesHistoryView.swift,
+				Features/Categories/Models/CategoryModel.swift,
+				Features/Categories/ViewModels/CategorySelectionViewModel.swift,
+				Features/Categories/Views/CategorySelectionView.swift,
+				Features/Game/GamePlugin.swift,
+				Features/Game/Models/GameModels.swift,
+				Features/Game/Storage/GameStorageService.swift,
+				Features/Game/ViewModels/GameViewModel.swift,
+				Features/Game/Views/GameSettingsView.swift,
+				Features/Game/Views/GameView.swift,
+				Features/Reminders/Services/NotificationService.swift,
+				Features/Reminders/ViewModels/ReminderViewModel.swift,
+				Features/Reminders/Views/ReminderEditorView.swift,
+				Features/Settings/Views/Settings.swift,
+				Features/Statistics/Models/StatisticsModel.swift,
+				Features/Statistics/ViewModels/StatisticsViewModel.swift,
+				Features/Statistics/Views/StatisticsView.swift,
+				Features/Streaks/ViewModels/StreakCalculator.swift,
+				Features/Streaks/Views/StreakSectionView.swift,
+				Features/Streaks/Views/StreakTestHelper.swift,
+				Infraestructure/Persistence/JSONStorageProvider.swift,
+				Infraestructure/Persistence/MockStorageProvider.swift,
+				Infraestructure/Persistence/StorageProvider.swift,
+				Infraestructure/Persistence/SwiftDataStorageProvider.swift,
+				Infraestructure/Plugins/DataPlugin.swift,
+				Infraestructure/Plugins/FeaturePlugin.swift,
+				Infraestructure/Plugins/HabitFilterProvider.swift,
+				Infraestructure/Plugins/PluginDiscovery.swift,
+				Infraestructure/Plugins/PluginRegistry.swift,
+				Infraestructure/Plugins/ViewPlugin.swift,
+			);
+			target = 3553F3172F1444FA000B64C3 /* App-Plugin-Juego */;
+		};
 		35B69FAD2F11C8CD0027EC7A /* Exceptions for "HabitApp" folder in "AppFull" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -122,21 +318,15 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		35B69F9D2F11C5580027EC7A /* AppFull */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = AppFull;
-			sourceTree = "<group>";
-		};
-		35B69FEB2F11D5890027EC7A /* AppCore */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = AppCore;
-			sourceTree = "<group>";
-		};
 		35C015A32E9FF2ED00AA6084 /* HabitApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				35B69FAD2F11C8CD0027EC7A /* Exceptions for "HabitApp" folder in "AppFull" target */,
 				35B69FFB2F11D80E0027EC7A /* Exceptions for "HabitApp" folder in "AppCore" target */,
+				3553F3272F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Rutinas" target */,
+				3553F3282F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Filtro" target */,
+				3553F3292F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Calendario" target */,
+				3553F32A2F14450A000B64C3 /* Exceptions for "HabitApp" folder in "App-Plugin-Juego" target */,
 			);
 			path = HabitApp;
 			sourceTree = "<group>";
@@ -144,6 +334,34 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3553F2E82F1444A9000B64C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F2F72F1444C0000B64C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F3062F1444E6000B64C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F3152F1444FA000B64C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		35B69F992F11C5580027EC7A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -172,8 +390,6 @@
 			isa = PBXGroup;
 			children = (
 				35C015A32E9FF2ED00AA6084 /* HabitApp */,
-				35B69F9D2F11C5580027EC7A /* AppFull */,
-				35B69FEB2F11D5890027EC7A /* AppCore */,
 				35C015A22E9FF2ED00AA6084 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -184,6 +400,10 @@
 				35C015A12E9FF2ED00AA6084 /* HabitApp.app */,
 				35B69F9C2F11C5580027EC7A /* AppFull.app */,
 				35B69FEA2F11D5890027EC7A /* AppCore.app */,
+				3553F2EB2F1444A9000B64C3 /* App-Plugin-Rutinas.app */,
+				3553F2FA2F1444C0000B64C3 /* App-Plugin-Filtro.app */,
+				3553F3092F1444E6000B64C3 /* App-Plugin-Calendario.app */,
+				3553F3182F1444FA000B64C3 /* App-Plugin-Juego.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -191,6 +411,82 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3553F2EA2F1444A9000B64C3 /* App-Plugin-Rutinas */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3553F2F32F1444AB000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Rutinas" */;
+			buildPhases = (
+				3553F2E72F1444A9000B64C3 /* Sources */,
+				3553F2E82F1444A9000B64C3 /* Frameworks */,
+				3553F2E92F1444A9000B64C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "App-Plugin-Rutinas";
+			packageProductDependencies = (
+			);
+			productName = "App-Plugin-Rutinas";
+			productReference = 3553F2EB2F1444A9000B64C3 /* App-Plugin-Rutinas.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3553F2F92F1444C0000B64C3 /* App-Plugin-Filtro */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3553F3022F1444C1000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Filtro" */;
+			buildPhases = (
+				3553F2F62F1444C0000B64C3 /* Sources */,
+				3553F2F72F1444C0000B64C3 /* Frameworks */,
+				3553F2F82F1444C0000B64C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "App-Plugin-Filtro";
+			packageProductDependencies = (
+			);
+			productName = "App-Plugin-Filtro";
+			productReference = 3553F2FA2F1444C0000B64C3 /* App-Plugin-Filtro.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3553F3082F1444E6000B64C3 /* App-Plugin-Calendario */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3553F3112F1444E7000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Calendario" */;
+			buildPhases = (
+				3553F3052F1444E6000B64C3 /* Sources */,
+				3553F3062F1444E6000B64C3 /* Frameworks */,
+				3553F3072F1444E6000B64C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "App-Plugin-Calendario";
+			packageProductDependencies = (
+			);
+			productName = "App-Plugin-Calendario";
+			productReference = 3553F3092F1444E6000B64C3 /* App-Plugin-Calendario.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3553F3172F1444FA000B64C3 /* App-Plugin-Juego */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3553F3202F1444FC000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Juego" */;
+			buildPhases = (
+				3553F3142F1444FA000B64C3 /* Sources */,
+				3553F3152F1444FA000B64C3 /* Frameworks */,
+				3553F3162F1444FA000B64C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "App-Plugin-Juego";
+			packageProductDependencies = (
+			);
+			productName = "App-Plugin-Juego";
+			productReference = 3553F3182F1444FA000B64C3 /* App-Plugin-Juego.app */;
+			productType = "com.apple.product-type.application";
+		};
 		35B69F9B2F11C5580027EC7A /* AppFull */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 35B69FA62F11C5590027EC7A /* Build configuration list for PBXNativeTarget "AppFull" */;
@@ -202,9 +498,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				35B69F9D2F11C5580027EC7A /* AppFull */,
 			);
 			name = AppFull;
 			packageProductDependencies = (
@@ -224,9 +517,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				35B69FEB2F11D5890027EC7A /* AppCore */,
 			);
 			name = AppCore;
 			packageProductDependencies = (
@@ -267,6 +557,18 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					3553F2EA2F1444A9000B64C3 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					3553F2F92F1444C0000B64C3 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					3553F3082F1444E6000B64C3 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					3553F3172F1444FA000B64C3 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 					35B69F9B2F11C5580027EC7A = {
 						CreatedOnToolsVersion = 26.0;
 					};
@@ -295,11 +597,43 @@
 				35C015A02E9FF2ED00AA6084 /* HabitApp */,
 				35B69F9B2F11C5580027EC7A /* AppFull */,
 				35B69FE92F11D5890027EC7A /* AppCore */,
+				3553F2EA2F1444A9000B64C3 /* App-Plugin-Rutinas */,
+				3553F2F92F1444C0000B64C3 /* App-Plugin-Filtro */,
+				3553F3082F1444E6000B64C3 /* App-Plugin-Calendario */,
+				3553F3172F1444FA000B64C3 /* App-Plugin-Juego */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3553F2E92F1444A9000B64C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F2F82F1444C0000B64C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F3072F1444E6000B64C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F3162F1444FA000B64C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		35B69F9A2F11C5580027EC7A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -324,6 +658,34 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3553F2E72F1444A9000B64C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F2F62F1444C0000B64C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F3052F1444E6000B64C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3553F3142F1444FA000B64C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		35B69F982F11C5580027EC7A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -348,6 +710,342 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		3553F2F42F1444AB000B64C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Rutinas";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		3553F2F52F1444AB000B64C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Rutinas";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		3553F3032F1444C1000B64C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Filtro";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		3553F3042F1444C1000B64C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Filtro";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		3553F3122F1444E7000B64C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Calendario";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		3553F3132F1444E7000B64C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Calendario";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		3553F3212F1444FC000B64C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Juego";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		3553F3222F1444FC000B64C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "ual.App-Plugin-Juego";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 		35B69FA42F11C5590027EC7A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -699,6 +1397,42 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3553F2F32F1444AB000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Rutinas" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3553F2F42F1444AB000B64C3 /* Debug */,
+				3553F2F52F1444AB000B64C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3553F3022F1444C1000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Filtro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3553F3032F1444C1000B64C3 /* Debug */,
+				3553F3042F1444C1000B64C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3553F3112F1444E7000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Calendario" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3553F3122F1444E7000B64C3 /* Debug */,
+				3553F3132F1444E7000B64C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3553F3202F1444FC000B64C3 /* Build configuration list for PBXNativeTarget "App-Plugin-Juego" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3553F3212F1444FC000B64C3 /* Debug */,
+				3553F3222F1444FC000B64C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		35B69FA62F11C5590027EC7A /* Build configuration list for PBXNativeTarget "AppFull" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

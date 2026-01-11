@@ -1,21 +1,21 @@
-name: Rutina Module CI
+name: Calendar Module CI
 
-# Se ejecuta cuando hay cambios en el módulo Rutinas
+# Se ejecuta cuando hay cambios en el módulo Calendar
 on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'HabitApp/HabitApp/Features/Rutinas/**'
+      - 'HabitApp/HabitApp/Features/Calendar/**'
       - 'HabitApp/HabitApp/Infraestructure/Plugins/**'
   pull_request:
     paths:
-      - 'HabitApp/HabitApp/Features/Rutinas/**'
+      - 'HabitApp/HabitApp/Features/Calendar/**'
       - 'HabitApp/HabitApp/Infraestructure/Plugins/**'
   workflow_dispatch:
 
 jobs:
-  validate-rutina-module:
-    name: Validar Módulo Rutina
+  validate-calendar-module:
+    name: Validar Módulo Calendar
     runs-on: macos-latest
     
     steps:
@@ -28,39 +28,39 @@ jobs:
       - name: Verificar versión de Swift
         run: swift --version
 
-      - name: Listar archivos del módulo Rutina
+      - name: Listar archivos del módulo Calendar
         run: |
-          echo "📁 Estructura del módulo Rutinas:"
-          find HabitApp/HabitApp/Features/Rutinas -type f -name "*.swift" | sort
+          echo "📁 Estructura del módulo Calendar:"
+          find HabitApp/HabitApp/Features/Calendar -type f -name "*.swift" | sort
 
       - name: Validar sintaxis Swift del módulo
         run: |
           echo "🔍 Validando sintaxis de archivos Swift..."
-          for file in HabitApp/HabitApp/Features/Rutinas/**/*.swift; do
+          for file in HabitApp/HabitApp/Features/Calendar/**/*.swift; do
             if [ -f "$file" ]; then
               echo "Verificando: $file"
               xcrun swift -frontend -parse "$file" || exit 1
             fi
           done
 
-      - name: Compilar target App-Plugin-Rutinas (macOS)
+      - name: Compilar target App-Plugin-Calendario (macOS)
         working-directory: HabitApp
         run: |
-          echo "🔨 Compilando target App-Plugin-Rutinas (macOS)..."
+          echo "🔨 Compilando target App-Plugin-Calendario (macOS)..."
           xcodebuild \
             -project HabitApp.xcodeproj \
-            -scheme App-Plugin-Rutinas \
+            -scheme App-Plugin-Calendario \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             clean build | xcpretty || true
 
-      - name: Compilar target App-Plugin-Rutinas (iOS)
+      - name: Compilar target App-Plugin-Calendario (iOS)
         working-directory: HabitApp
         run: |
-          echo "🔨 Compilando target App-Plugin-Rutinas (iOS)..."
+          echo "🔨 Compilando target App-Plugin-Calendario (iOS)..."
           xcodebuild \
             -project HabitApp.xcodeproj \
-            -scheme App-Plugin-Rutinas \
+            -scheme App-Plugin-Calendario \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             clean build | xcpretty || true
@@ -68,44 +68,44 @@ jobs:
       - name: Verificar protocolo ViewPlugin
         run: |
           echo "🔌 Verificando implementación de ViewPlugin..."
-          grep -n "ViewPlugin" HabitApp/HabitApp/Features/Rutinas/RutinaPlugin.swift || echo "⚠️ ViewPlugin no encontrado"
+          grep -n "ViewPlugin" HabitApp/HabitApp/Features/Calendar/CalendarPlugin.swift || echo "⚠️ ViewPlugin no encontrado"
 
       - name: Verificar protocolo DataPlugin
         run: |
           echo "💾 Verificando implementación de DataPlugin..."
-          grep -n "DataPlugin" HabitApp/HabitApp/Features/Rutinas/RutinaPlugin.swift || echo "⚠️ DataPlugin no encontrado"
+          grep -n "DataPlugin" HabitApp/HabitApp/Features/Calendar/CalendarPlugin.swift || echo "⚠️ DataPlugin no encontrado"
 
       - name: Análisis de componentes del módulo
         run: |
-          echo "📊 Análisis del módulo Rutinas:"
+          echo "📊 Análisis del módulo Calendar:"
           echo "----------------------------------------"
           echo "Modelos:"
-          find HabitApp/HabitApp/Features/Rutinas/Models -name "*.swift" -exec basename {} \;
+          find HabitApp/HabitApp/Features/Calendar/Models -name "*.swift" -exec basename {} \; 2>/dev/null || echo "Sin modelos"
           echo "----------------------------------------"
           echo "ViewModels:"
-          find HabitApp/HabitApp/Features/Rutinas/ViewModels -name "*.swift" -exec basename {} \;
+          find HabitApp/HabitApp/Features/Calendar/ViewModels -name "*.swift" -exec basename {} \; 2>/dev/null || echo "Sin ViewModels"
           echo "----------------------------------------"
           echo "Views:"
-          find HabitApp/HabitApp/Features/Rutinas/Views -name "*.swift" -exec basename {} \;
+          find HabitApp/HabitApp/Features/Calendar/Views -name "*.swift" -exec basename {} \; 2>/dev/null || echo "Sin Views"
           echo "----------------------------------------"
           echo "Storage:"
-          find HabitApp/HabitApp/Features/Rutinas/Storage -name "*.swift" -exec basename {} \;
+          find HabitApp/HabitApp/Features/Calendar/Storage -name "*.swift" -exec basename {} \; 2>/dev/null || echo "Sin Storage"
 
       - name: Verificar dependencias del plugin
         run: |
           echo "🔗 Verificando dependencias..."
-          grep -n "import" HabitApp/HabitApp/Features/Rutinas/RutinaPlugin.swift | head -20
+          grep -n "import" HabitApp/HabitApp/Features/Calendar/CalendarPlugin.swift | head -20
 
       - name: Resumen de validación
         if: success()
         run: |
-          echo "✅ Módulo Rutinas validado exitosamente"
+          echo "✅ Módulo Calendar validado exitosamente"
           echo "✅ Sintaxis correcta"
-          echo "✅ Compilación exitosa en App-Plugin-Rutinas (macOS e iOS)"
+          echo "✅ Compilación exitosa en App-Plugin-Calendario (macOS e iOS)"
           echo "✅ Protocolos de plugins implementados"
 
       - name: Reportar errores
         if: failure()
         run: |
-          echo "❌ La validación del módulo Rutinas falló"
+          echo "❌ La validación del módulo Calendar falló"
           echo "Por favor revisa los logs anteriores para más detalles"

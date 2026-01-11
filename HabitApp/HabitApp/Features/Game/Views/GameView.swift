@@ -18,27 +18,27 @@ struct GameView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if viewModel.isLoading {
-                    ProgressView("Cargando hábitos...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let error = viewModel.errorMessage {
-                    errorView(error)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.habitos.isEmpty {
-                    emptyStateView
-                } else {
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            habitSelectorSection
-                            levelSection
-                            dragonSpriteSection
-                            shopSection
-                            dragonCollectionSection
+                            if viewModel.isLoading {
+                                ProgressView("Cargando hábitos...")
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            } else if let error = viewModel.errorMessage {
+                                errorView(error)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            } else if viewModel.habitos.isEmpty {
+                                emptyStateView
+                            } else {
+                                ScrollView {
+                                    VStack(spacing: 24) {
+                                        habitSelectorSection
+                                        levelSection
+                                        dragonSpriteSection
+                                        shopSection
+                                        dragonCollectionSection
+                                    }
+                                    .padding()
+                                }
+                            }
                         }
-                        .padding()
-                    }
-                }
-            }
             .navigationTitle("Juego")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
