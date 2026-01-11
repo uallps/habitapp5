@@ -160,15 +160,18 @@ struct HabitListView: View {
     @ViewBuilder
     private func statusBadge(for habit: Habito) -> some View {
         let now = Date()
-        if let dueDate = habit.fechaFin, dueDate <= now {
-            Text("Vencido: \(dueDate.formatted(date: .abbreviated, time: .omitted))")
-                .font(.caption2.weight(.semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.red.opacity(0.18))
-                .foregroundStyle(.red)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .allowsHitTesting(false)
+        // Un hábito está vencido solo si la fecha fin es ANTERIOR a hoy (no el mismo día)
+        if !habit.isActive(at: now) {
+            if let dueDate = habit.fechaFin {
+                Text("Vencido: \(dueDate.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.red.opacity(0.18))
+                    .foregroundStyle(.red)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .allowsHitTesting(false)
+            }
         } else {
             Text("Activo")
                 .font(.caption2.weight(.semibold))

@@ -229,7 +229,7 @@ struct ProgressStatisticCardView: View {
                 
                 Spacer()
                 
-                Text("\(Int(value * 100))%")
+                Text(String(format: "%.1f%%", value * 100))
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(color)
@@ -365,7 +365,7 @@ struct CategoryStatisticRowView: View {
                 
                 Spacer()
                 
-                Text("\(Int(statistic.averageCompletionRate * 100))% tasa")
+                Text(String(format: "%.1f%% tasa", statistic.averageCompletionRate * 100))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

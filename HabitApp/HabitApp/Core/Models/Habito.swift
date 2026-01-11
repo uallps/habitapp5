@@ -257,6 +257,18 @@ class Habito: Identifiable, Codable {
         
         return nil
     }
+    
+    /// Verifica si el hábito está activo en una fecha específica
+    /// Un hábito es activo si:
+    /// - No tiene fecha fin, O
+    /// - La fecha fin es >= fecha proporcionada (el mismo día cuenta como activo)
+    func isActive(at date: Date = Date()) -> Bool {
+        guard let fechaFin = fechaFin else { return true }
+        let calendar = Calendar.current
+        let dateStart = calendar.startOfDay(for: date)
+        let finStart = calendar.startOfDay(for: fechaFin)
+        return finStart >= dateStart
+    }
 }
 
 enum Prioridad: String, Codable {

@@ -317,8 +317,16 @@ struct CalendarView: View {
                     let key = calendar.startOfDay(for: date)
                     let isInDisplayedMonth = calendar.isDate(key, equalTo: monthStart, toGranularity: .month)
 
-                    let hasCompletions = (completedHabitsByDay[key]?.isEmpty == false)
-                    let hasScheduled = (scheduledHabitsByDay[key]?.isEmpty == false)
+                    let completedHabits = completedHabitsByDay[key] ?? []
+                    let scheduledHabits = scheduledHabitsByDay[key] ?? []
+                    
+                    // Solo mostrar punto de "programado" si hay hábitos sin completar
+                    let incompletedScheduledHabits = scheduledHabits.filter { habit in
+                        !completedHabits.contains(where: { $0.id == habit.id })
+                    }
+                    
+                    let hasCompletions = !completedHabits.isEmpty
+                    let hasScheduled = !incompletedScheduledHabits.isEmpty
                     let isSelected = calendar.isDate(key, inSameDayAs: selectedDayKey)
                     let isToday = calendar.isDate(key, inSameDayAs: Date())
 

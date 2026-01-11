@@ -85,13 +85,11 @@ class StatisticsViewModel: ObservableObject {
     /// Calcula las estadísticas
     private func calculateStatistics(from habits: [Habito]) {
         let now = Date()
-        let calendar = Calendar.current
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2 // Lunes como primer día de la semana
         let totalHabits = habits.count
-        // Hábitos activos (sin fecha fin o fecha fin futura)
-        let activeHabitsList = habits.filter { habit in
-            guard let fechaFin = habit.fechaFin else { return true }
-            return fechaFin > now
-        }
+        // Hábitos activos (sin fecha fin o fecha fin >= hoy)
+        let activeHabitsList = habits.filter { $0.isActive(at: now) }
         let activeHabits = activeHabitsList.count
         
         // Contar hábitos activos por prioridad
@@ -174,48 +172,182 @@ class StatisticsViewModel: ObservableObject {
     
     /// Calcula la tasa de completitud promedio
     private func calculateAverageCompletionRate(from habits: [Habito], calendar: Calendar) -> Double {
-        guard !habits.isEmpty else { return 0.0 }
+        // Solo considerar hábitos activos
+        let activeHabits = habits.filter { $0.isActive() }
+        guard !activeHabits.isEmpty else { return 0.0 }
+        
         var totalRate = 0.0
         var validHabitsCount = 0
         
-        for habit in habits {
-            // Usar valores por defecto si no están configurados
-            let startDate = habit.fechaInicio ?? Date()
-            let frequency = habit.tipoFrecuencia ?? .semanal
-            let timesPerPeriod = habit.vecesPorPeriodo ?? 1
-            
-            let now = Date()
-            let endDate = habit.fechaFin ?? now
-            
-            // Calcular cuántos períodos han pasado
-            if frequency == .semanal {
-                let daysPassed = calendar.dateComponents([.day], from: startDate, to: min(endDate, now)).day ?? 0
-                let weeksPassed = max(1, daysPassed / 7)
-                let expectedCompletions = weeksPassed * timesPerPeriod
-                let actualCompletions = habit.fechaCompletitud.count
-                
-                if expectedCompletions > 0 {
-                    let rate = Double(actualCompletions) / Double(expectedCompletions)
-                    totalRate += min(1.0, rate)
-                    validHabitsCount += 1
-                }
-            } else {
-                // Mensual
-                let monthsPassed = calendar.dateComponents([.month], from: startDate, to: min(endDate, now)).month ?? 0
-                let periodsCount = max(1, monthsPassed)
-                let expectedCompletions = periodsCount * timesPerPeriod
-                let actualCompletions = habit.fechaCompletitud.count
-                
-                if expectedCompletions > 0 {
-                    let rate = Double(actualCompletions) / Double(expectedCompletions)
-                    totalRate += min(1.0, rate)
-                    validHabitsCount += 1
-                }
+        for habit in activeHabits {
+            if let rate = calculateCompletionRateForHabit(habit, calendar: calendar) {
+                totalRate += rate
+                validHabitsCount += 1
             }
         }
         
         let finalRate = validHabitsCount > 0 ? totalRate / Double(validHabitsCount) : 0.0
         return finalRate
+    }
+    
+    /// Calcula la tasa de completitud para un hábito individual
+    private func calculateCompletionRateForHabit(_ habit: Habito, calendar: Calendar) -> Double? {
+        let now = Date()
+        
+        // Solo calcular para hábitos activos
+        guard habit.isActive(at: now) else { return nil }
+        
+        // Determinar fecha de inicio
+        guard let startDate = habit.fechaInicio else { return nil }
+        
+        // No calcular si la fecha de inicio es futura
+        guard startDate <= now else { return nil }
+        
+        if let fechaFin = habit.fechaFin {
+            // CON FECHA DE FINALIZACIÓN: Calcular sobre todo el intervalo
+            // Usar el intervalo completo (inicio a fin) para calcular el 100%
+            let endDate = fechaFin // NO limitar a 'now', usar la fecha fin completa
+            
+            // No calcular si la fecha de fin es anterior a la fecha de inicio
+            guard endDate >= startDate else { return nil }
+            
+            // Contar completitudes válidas (solo hasta hoy para no contar futuro)
+            let validCompletions = habit.fechaCompletitud.filter { completionDate in
+                completionDate >= calendar.startOfDay(for: startDate) && 
+                completionDate <= calendar.startOfDay(for: min(endDate, now))
+            }
+            
+            let actualCompletions = validCompletions.count
+            
+            // Calcular completitudes esperadas en TODO el intervalo (inicio a fin)
+            let expectedCompletions = calculateExpectedCompletions(
+                for: habit, 
+                from: startDate, 
+                to: endDate, // Usar fecha fin completa, no limitada a hoy
+                calendar: calendar
+            )
+            
+            guard expectedCompletions > 0 else { return nil }
+            
+            let rate = Double(actualCompletions) / Double(expectedCompletions)
+            return min(1.0, rate) // Cap al 100%
+            
+        } else {
+            // SIN FECHA DE FINALIZACIÓN: Calcular solo para el período actual
+            let vecesPorPeriodo = habit.vecesPorPeriodoActual
+            
+            switch habit.tipoFrecuenciaActual {
+            case .semanal:
+                // Calcular solo para la semana actual (lunes a domingo)
+                var weekComponents = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+                weekComponents.weekday = 2 // Lunes
+                let startOfWeek = calendar.date(from: weekComponents)!
+                let endOfWeek = calendar.date(byAdding: .day, value: 6, to: startOfWeek)!
+                
+                // Contar completitudes en esta semana
+                let weekCompletions = habit.fechaCompletitud.filter { completionDate in
+                    completionDate >= startOfWeek && completionDate <= min(endOfWeek, now)
+                }
+                
+                let actualCompletions = weekCompletions.count
+                let expectedCompletions = vecesPorPeriodo
+                
+                guard expectedCompletions > 0 else { return nil }
+                
+                let rate = Double(actualCompletions) / Double(expectedCompletions)
+                return min(1.0, rate)
+                
+            case .mensual:
+                // Calcular solo para el mes actual
+                let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
+                let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)!
+                
+                // Contar completitudes en este mes
+                let monthCompletions = habit.fechaCompletitud.filter { completionDate in
+                    completionDate >= startOfMonth && completionDate <= min(endOfMonth, now)
+                }
+                
+                let actualCompletions = monthCompletions.count
+                let expectedCompletions = vecesPorPeriodo
+                
+                guard expectedCompletions > 0 else { return nil }
+                
+                let rate = Double(actualCompletions) / Double(expectedCompletions)
+                return min(1.0, rate)
+            }
+        }
+    }
+    
+    /// Calcula el número de completitudes esperadas en un rango de fechas
+    private func calculateExpectedCompletions(for habit: Habito, from startDate: Date, to endDate: Date, calendar: Calendar) -> Int {
+        let frequency = habit.tipoFrecuenciaActual
+        
+        switch frequency {
+        case .semanal:
+            return calculateWeeklyExpectedCompletions(for: habit, from: startDate, to: endDate, calendar: calendar)
+        case .mensual:
+            return calculateMonthlyExpectedCompletions(for: habit, from: startDate, to: endDate, calendar: calendar)
+        }
+    }
+    
+    /// Calcula completitudes esperadas para hábitos semanales
+    private func calculateWeeklyExpectedCompletions(for habit: Habito, from startDate: Date, to endDate: Date, calendar: Calendar) -> Int {
+        // Si hay días configurados Y la cantidad coincide con vecesPorPeriodo
+        if !habit.diasSemana.isEmpty && habit.diasSemana.count == habit.vecesPorPeriodoActual {
+            // Contar cuántos días coinciden en el intervalo
+            var expectedCount = 0
+            var currentDate = calendar.startOfDay(for: startDate)
+            let finalDate = calendar.startOfDay(for: endDate)
+            
+            while currentDate <= finalDate {
+                if habit.debeRealizarse(en: currentDate) {
+                    expectedCount += 1
+                }
+                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+            }
+            
+            return expectedCount
+        }
+        
+        // Si hay fecha fin: calcular semanas en el intervalo × vecesPorPeriodo
+        if habit.fechaFin != nil {
+            let days = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+            let weeks = Int(ceil(Double(days + 1) / 7.0)) // +1 para incluir el día final
+            return weeks * habit.vecesPorPeriodoActual
+        }
+        
+        // Sin días configurados y sin fecha fin: no se puede calcular
+        return 0
+    }
+    
+    /// Calcula completitudes esperadas para hábitos mensuales
+    private func calculateMonthlyExpectedCompletions(for habit: Habito, from startDate: Date, to endDate: Date, calendar: Calendar) -> Int {
+        // Si hay días configurados Y la cantidad coincide con vecesPorPeriodo
+        if !habit.diasMes.isEmpty && habit.diasMes.count == habit.vecesPorPeriodoActual {
+            // Contar cuántos días coinciden en el intervalo
+            var expectedCount = 0
+            var currentDate = calendar.startOfDay(for: startDate)
+            let finalDate = calendar.startOfDay(for: endDate)
+            
+            while currentDate <= finalDate {
+                if habit.debeRealizarse(en: currentDate) {
+                    expectedCount += 1
+                }
+                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+            }
+            
+            return expectedCount
+        }
+        
+        // Si hay fecha fin: calcular meses en el intervalo × vecesPorPeriodo
+        if habit.fechaFin != nil {
+            let components = calendar.dateComponents([.month, .day], from: startDate, to: endDate)
+            let months = (components.month ?? 0) + 1 // +1 para incluir el mes de inicio
+            return months * habit.vecesPorPeriodoActual
+        }
+        
+        // Sin días configurados y sin fecha fin: no se puede calcular
+        return 0
     }
     
     /// Encuentra la categoría más activa
@@ -230,23 +362,25 @@ class StatisticsViewModel: ObservableObject {
     private func calculatePeriodStatistics(from habits: [Habito], calendar: Calendar) {
         let now = Date()
         let startOfToday = calendar.startOfDay(for: now)
-        let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
+        // Obtener inicio de semana con lunes como primer día
+        var weekComponents = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        weekComponents.weekday = 2 // Lunes
+        let startOfWeek = calendar.date(from: weekComponents)!
         let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
         
         // Hoy
         let todayCompletions = countCompletions(in: habits, from: startOfToday, to: now, calendar: calendar)
-        let todayTarget = habits.count // Simplificado: asumimos que cada hábito debería completarse hoy
+        let todayTarget = calculateExpectedCompletionsForPeriod(habits: habits, from: startOfToday, to: startOfToday, calendar: calendar)
         let todayRate = todayTarget > 0 ? Double(todayCompletions) / Double(todayTarget) : 0.0
         
         // Esta Semana
         let weekCompletions = countCompletions(in: habits, from: startOfWeek, to: now, calendar: calendar)
-        let weekTarget = habits.count * 7
+        let weekTarget = calculateExpectedCompletionsForPeriod(habits: habits, from: startOfWeek, to: now, calendar: calendar)
         let weekRate = weekTarget > 0 ? Double(weekCompletions) / Double(weekTarget) : 0.0
         
         // Este Mes
         let monthCompletions = countCompletions(in: habits, from: startOfMonth, to: now, calendar: calendar)
-        let daysInMonth = calendar.range(of: .day, in: .month, for: now)?.count ?? 30
-        let monthTarget = habits.count * daysInMonth
+        let monthTarget = calculateExpectedCompletionsForPeriod(habits: habits, from: startOfMonth, to: now, calendar: calendar)
         let monthRate = monthTarget > 0 ? Double(monthCompletions) / Double(monthTarget) : 0.0
         
         self.periodStatistics = [
@@ -254,6 +388,83 @@ class StatisticsViewModel: ObservableObject {
             PeriodStatistics(period: "Esta Semana", completions: weekCompletions, targetHabits: weekTarget, completionRate: weekRate),
             PeriodStatistics(period: "Este Mes", completions: monthCompletions, targetHabits: monthTarget, completionRate: monthRate)
         ]
+    }
+    
+    /// Calcula el total de completitudes esperadas para un grupo de hábitos en un período
+    private func calculateExpectedCompletionsForPeriod(habits: [Habito], from startDate: Date, to endDate: Date, calendar: Calendar) -> Int {
+        var total = 0
+        
+        // Solo considerar hábitos activos
+        let activeHabits = habits.filter { $0.isActive(at: endDate) }
+        
+        for habit in activeHabits {
+            if let fechaFin = habit.fechaFin {
+                // CON FECHA FIN: calcular basado en días específicos configurados
+                let habitStartDate = habit.fechaInicio ?? startDate
+                let habitEndDate = fechaFin
+                
+                // Determinar el rango válido de intersección
+                let rangeStart = max(habitStartDate, startDate)
+                let rangeEnd = min(habitEndDate, endDate, Date()) // No contar días futuros
+                
+                // Si el rango es válido, calcular completitudes esperadas
+                if rangeStart <= rangeEnd {
+                    let expected = calculateExpectedCompletions(
+                        for: habit,
+                        from: rangeStart,
+                        to: rangeEnd,
+                        calendar: calendar
+                    )
+                    total += expected
+                }
+            } else {
+                // SIN FECHA FIN: usar vecesPorPeriodo según el tipo de período que estamos calculando
+                // Solo contar si el hábito ya debería estar activo
+                guard let habitStart = habit.fechaInicio, habitStart <= Date() else {
+                    continue
+                }
+                
+                // Determinar si estamos calculando para hoy, esta semana o este mes
+                let isToday = calendar.isDate(startDate, inSameDayAs: endDate)
+                let isWeek = !isToday && calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0 <= 7
+                let isMonth = !isToday && !isWeek
+                
+                let vecesPorPeriodo = habit.vecesPorPeriodoActual
+                
+                if isToday {
+                    // Para "hoy", verificar si el hábito debe realizarse hoy
+                    if habit.debeRealizarse(en: startDate) {
+                        total += 1
+                    }
+                } else if isWeek {
+                    // Para "esta semana", usar vecesPorPeriodo solo si es semanal
+                    if habit.tipoFrecuenciaActual == .semanal {
+                        total += vecesPorPeriodo
+                    } else {
+                        // Mensual: contar días específicos en esta semana
+                        var currentDate = startDate
+                        while currentDate <= min(endDate, Date()) {
+                            if habit.debeRealizarse(en: currentDate) {
+                                total += 1
+                            }
+                            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+                        }
+                    }
+                } else if isMonth {
+                    // Para "este mes", usar vecesPorPeriodo solo si es mensual
+                    if habit.tipoFrecuenciaActual == .mensual {
+                        total += vecesPorPeriodo
+                    } else {
+                        // Semanal: calcular cuántas veces debería hacerse en el mes
+                        let daysInPeriod = calendar.dateComponents([.day], from: startDate, to: min(endDate, Date())).day ?? 0
+                        let weeksInPeriod = Double(daysInPeriod) / 7.0
+                        total += Int(ceil(weeksInPeriod * Double(vecesPorPeriodo)))
+                    }
+                }
+            }
+        }
+        
+        return total
     }
     
     /// Calcula estadísticas por categoría
