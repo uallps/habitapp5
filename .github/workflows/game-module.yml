@@ -3,7 +3,7 @@ name: Game Module CI
 # Se ejecuta cuando hay cambios en el módulo Game
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'HabitApp/HabitApp/Features/Game/**'
       - 'HabitApp/HabitApp/Infraestructure/Plugins/**'

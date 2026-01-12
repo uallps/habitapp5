@@ -3,7 +3,7 @@ name: Filters Module CI
 # Se ejecuta cuando hay cambios en el módulo Filters
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'HabitApp/HabitApp/Features/Filters/**'
       - 'HabitApp/HabitApp/Infraestructure/Plugins/**'

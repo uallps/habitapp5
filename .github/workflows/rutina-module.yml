@@ -3,7 +3,7 @@ name: Rutina Module CI
 # Se ejecuta cuando hay cambios en el módulo Rutinas
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'HabitApp/HabitApp/Features/Rutinas/**'
       - 'HabitApp/HabitApp/Infraestructure/Plugins/**'

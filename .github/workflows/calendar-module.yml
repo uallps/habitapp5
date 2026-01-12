@@ -3,7 +3,7 @@ name: Calendar Module CI
 # Se ejecuta cuando hay cambios en el módulo Calendar
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'HabitApp/HabitApp/Features/Calendar/**'
       - 'HabitApp/HabitApp/Infraestructure/Plugins/**'
