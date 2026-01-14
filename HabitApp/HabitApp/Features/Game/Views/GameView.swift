@@ -37,6 +37,7 @@ struct GameView: View {
                                     }
                                     .padding()
                                 }
+                                .background(AppStyle.screenBackground)
                             }
                         }
             .navigationTitle("Juego")
@@ -55,11 +56,10 @@ struct GameView: View {
     // MARK: - Components
     
     private var habitSelectorSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Hábito")
                     .font(.headline)
-                    .foregroundStyle(.secondary)
                 
                 Spacer()
                 
@@ -98,16 +98,26 @@ struct GameView: View {
                         .font(.caption)
                 }
                 .padding()
-                .background(Color.secondary.opacity(0.1))
+                .background(AppStyle.subtleFill)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
+        .padding()
+        .background(AppStyle.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius))
     }
     
     private var levelSection: some View {
         VStack(spacing: 12) {
-            Text("Nivel: \(viewModel.nivel)")
-                .font(.system(size: 48, weight: .bold))
+            HStack {
+                Image(systemName: "star.fill")
+                    .foregroundStyle(.purple)
+                Text("Nivel")
+                    .font(.headline)
+            }
+            
+            Text("\(viewModel.nivel)")
+                .font(.system(size: 56, weight: .bold))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [.purple, .blue],
@@ -125,27 +135,31 @@ struct GameView: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.purple.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(AppStyle.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius))
     }
     
     private var dragonSpriteSection: some View {
         VStack(spacing: 12) {
-            Text("Tu Dragón")
-                .font(.headline)
+            HStack {
+                Image(systemName: "flame.fill")
+                    .foregroundStyle(.orange)
+                Text("Tu Dragón")
+                    .font(.headline)
+                Spacer()
+            }
             
             Text(viewModel.currentAsciiArt)
                 .font(.system(.body, design: .monospaced))
+                .multilineTextAlignment(.center)
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.05))
+                .background(AppStyle.subtleFill)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.purple.opacity(0.3), lineWidth: 2)
-                )
         }
-        .padding(.vertical)
+        .padding()
+        .background(AppStyle.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius))
     }
     
     private var shopSection: some View {
@@ -179,8 +193,8 @@ struct GameView: View {
             }
         }
         .padding()
-        .background(Color.orange.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(AppStyle.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius))
     }
     
     private var dragonCollectionSection: some View {
@@ -221,8 +235,8 @@ struct GameView: View {
             }
         }
         .padding()
-        .background(Color.blue.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(AppStyle.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppStyle.cardCornerRadius))
     }
     
     private var emptyStateView: some View {
@@ -344,7 +358,7 @@ struct ShopItemRow: View {
             }
         }
         .padding()
-        .background(isPurchased ? Color.green.opacity(0.05) : Color.secondary.opacity(0.05))
+        .background(AppStyle.subtleFill)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -368,15 +382,17 @@ struct DragonCollectionCard: View {
             if isCollected {
                 Text(dragonArt)
                     .font(.system(.caption, design: .monospaced))
+                    .multilineTextAlignment(.center)
                     .padding(8)
                     .frame(maxWidth: .infinity, minHeight: 100)
-                    .background(Color.blue.opacity(0.1))
+                    .background(AppStyle.subtleFill)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 // Dragón no descubierto - silueta
                 ZStack {
                     Text(dragonArt)
                         .font(.system(.caption, design: .monospaced))
+                        .multilineTextAlignment(.center)
                         .blur(radius: 5)
                         .opacity(0.3)
                     
@@ -386,7 +402,7 @@ struct DragonCollectionCard: View {
                 }
                 .padding(8)
                 .frame(maxWidth: .infinity, minHeight: 100)
-                .background(Color.gray.opacity(0.1))
+                .background(AppStyle.subtleFill)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             
@@ -434,11 +450,11 @@ struct DragonCollectionCard: View {
             }
         }
         .padding()
-        .background(isCollected ? Color.green.opacity(0.05) : Color.gray.opacity(0.05))
+        .background(AppStyle.subtleFill)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isCollected ? Color.green.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 2)
+                .stroke(isCollected ? Color.green.opacity(0.3) : Color.clear, lineWidth: 2)
         )
     }
 }
