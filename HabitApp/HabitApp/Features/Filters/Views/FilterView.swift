@@ -10,6 +10,7 @@ import SwiftUI
 /// Vista de filtros para hábitos
 struct FilterView: View {
     @ObservedObject var viewModel: FilterViewModel
+    @EnvironmentObject private var appConfig: AppConfig
     @State private var showCategoryPicker = false
     
     /// Array de todas las categorías disponibles
@@ -71,62 +72,66 @@ struct FilterView: View {
             }
             
             // Filtro de categorías
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Categorías")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
-                    if !viewModel.filterState.selectedCategoryIds.isEmpty {
-                        Text("\(viewModel.filterState.selectedCategoryIds.count) seleccionadas")
-                            .font(.caption)
-                            .foregroundStyle(.tint)
+            if appConfig.enableCategories {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Categorías")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        if !viewModel.filterState.selectedCategoryIds.isEmpty {
+                            Text("\(viewModel.filterState.selectedCategoryIds.count) seleccionadas")
+                                .font(.caption)
+                                .foregroundStyle(.tint)
+                        }
                     }
-                }
-                
-                if availableCategories.isEmpty {
-                    Text("No hay categorías disponibles")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 8)
-                } else {
-                    FlowLayout(spacing: 8) {
-                        ForEach(availableCategories) { category in
-                            CategoryFilterButton(
-                                category: category,
-                                isSelected: viewModel.filterState.selectedCategoryIds.contains(category.id),
-                                action: {
-                                    viewModel.toggleCategory(category.id)
-                                }
-                            )
+                    
+                    if availableCategories.isEmpty {
+                        Text("No hay categorías disponibles")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, 8)
+                    } else {
+                        FlowLayout(spacing: 8) {
+                            ForEach(availableCategories) { category in
+                                CategoryFilterButton(
+                                    category: category,
+                                    isSelected: viewModel.filterState.selectedCategoryIds.contains(category.id),
+                                    action: {
+                                        viewModel.toggleCategory(category.id)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
             
             // Filtro de prioridades
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Prioridades")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    
-                    if !viewModel.filterState.selectedPriorities.isEmpty {
-                        Text("\(viewModel.filterState.selectedPriorities.count) seleccionadas")
-                            .font(.caption)
-                            .foregroundStyle(.tint)
+            if appConfig.showPriorities {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Prioridades")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        if !viewModel.filterState.selectedPriorities.isEmpty {
+                            Text("\(viewModel.filterState.selectedPriorities.count) seleccionadas")
+                                .font(.caption)
+                                .foregroundStyle(.tint)
+                        }
                     }
-                }
-                
-                FlowLayout(spacing: 8) {
-                    ForEach([Prioridad.low, Prioridad.medium, Prioridad.high], id: \.self) { priority in
-                        PriorityFilterButton(
-                            priority: priority,
-                            isSelected: viewModel.filterState.selectedPriorities.contains(priority),
-                            action: {
-                                viewModel.togglePriority(priority)
-                            }
-                        )
+                    
+                    FlowLayout(spacing: 8) {
+                        ForEach([Prioridad.low, Prioridad.medium, Prioridad.high], id: \.self) { priority in
+                            PriorityFilterButton(
+                                priority: priority,
+                                isSelected: viewModel.filterState.selectedPriorities.contains(priority),
+                                action: {
+                                    viewModel.togglePriority(priority)
+                                }
+                            )
+                        }
                     }
                 }
             }
