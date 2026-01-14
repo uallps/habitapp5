@@ -17,6 +17,7 @@ protocol RutinaStorageProvider {
 
 // MARK: - Implementación SwiftData
 
+@MainActor
 final class SwiftDataRutinaStorageProvider: RutinaStorageProvider {
     static let shared = SwiftDataRutinaStorageProvider()
     

@@ -21,7 +21,7 @@ class StatisticsViewModel: ObservableObject {
     private let storageProvider: StorageProvider
     private var allHabits: [Habito] = []
     
-    init(storageProvider: StorageProvider = SwiftDataStorageProvider()) {
+    init(storageProvider: StorageProvider) {
         self.storageProvider = storageProvider
     }
     

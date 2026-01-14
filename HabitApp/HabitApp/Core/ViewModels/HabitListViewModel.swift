@@ -14,7 +14,7 @@ class HabitListViewModel: ObservableObject{
     private let storageProvider: StorageProvider
     private let notificationService = NotificationService.shared
     
-    init(storageProvider: StorageProvider = SwiftDataStorageProvider()) {
+    init(storageProvider: StorageProvider) {
         self.storageProvider = storageProvider
     }
 

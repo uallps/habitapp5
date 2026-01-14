@@ -91,13 +91,17 @@ class RutinaViewModel: ObservableObject {
             var habitos = try await habitStorageProvider.loadHabits()
 
             var markedCount = 0
+            let today = Date()
             
             for habitoId in rutina.habitoIds {
                 if let index = habitos.firstIndex(where: { $0.id == habitoId }) {
-                    // Usar el nuevo método toggleCompletitud para marcar como completado hoy
-                    if !habitos[index].estaCompletado(en: Date()) {
-                        habitos[index].marcarCompletado(en: Date())
-                        markedCount += 1
+                    // Solo marcar si el hábito está activo (no vencido) y aún no está completado hoy
+                    if habitos[index].isActive(at: today) && !habitos[index].estaCompletado(en: today) {
+                        habitos[index].marcarCompletado(en: today)
+                        // Recontar por si en el futuro la lógica de marcar aplica más validaciones
+                        if habitos[index].estaCompletado(en: today) {
+                            markedCount += 1
+                        }
                     }
                 }
             }
