@@ -261,7 +261,9 @@ struct HabitDetailView: View {
                         
                         // Helper para probar rachas (controlado desde ajustes)
                         if AppConfig.showDebugTools {
-                            StreakTestHelper(habit: $habit)
+                            StreakTestHelper(habit: $habit, onSave: {
+                                scheduleSave()
+                            })
                         }
                     }
                 }

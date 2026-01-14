@@ -9,6 +9,9 @@ struct StreakTestHelper: View {
     @State private var selectedDate = Date()
     @State private var showDatePicker = false
     
+    // Callback para guardar cambios
+    var onSave: (() -> Void)?
+    
     // Estados para rango de fechas
     @State private var rangeStartDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     @State private var rangeEndDate = Date()
@@ -38,6 +41,7 @@ struct StreakTestHelper: View {
             HStack(spacing: 8) {
                 Button("+ Hoy") {
                     habit.marcarCompletado(en: Date())
+                    onSave?()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
@@ -45,12 +49,14 @@ struct StreakTestHelper: View {
                 Button("+ Ayer") {
                     let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
                     habit.marcarCompletado(en: yesterday)
+                    onSave?()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 
                 Button("Limpiar") {
                     habit.fechaCompletitud.removeAll()
+                    onSave?()
                 }
                 .buttonStyle(.bordered)
                 .tint(.red)
@@ -76,6 +82,7 @@ struct StreakTestHelper: View {
                     
                     Button("Añadir") {
                         habit.marcarCompletado(en: selectedDate)
+                        onSave?()
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
@@ -242,6 +249,7 @@ struct StreakTestHelper: View {
                             
                             Button(action: {
                                 habit.desmarcarCompletado(en: fecha)
+                                onSave?()
                             }) {
                                 Image(systemName: "minus.circle.fill")
                                     .font(.caption2)
@@ -279,6 +287,7 @@ struct StreakTestHelper: View {
                 }
             }
         }
+        onSave?()
     }
     
     /// Añade todos los días de los últimos 7 días que coincidan con la configuración
@@ -293,6 +302,7 @@ struct StreakTestHelper: View {
                 }
             }
         }
+        onSave?()
     }
     
     /// Calcula el número de días en el rango seleccionado
@@ -325,6 +335,7 @@ struct StreakTestHelper: View {
         }
         
         print("✅ [StreakTestHelper] Añadidas \(addedCount) fechas al hábito")
+        onSave?()
     }
     
     /// Elimina todas las fechas del rango seleccionado de la completitud del hábito
@@ -349,6 +360,7 @@ struct StreakTestHelper: View {
         }
         
         print("🗑️ [StreakTestHelper] Eliminadas \(removedCount) fechas del hábito")
+        onSave?()
     }
     
     private func formatDate(_ date: Date) -> String {
@@ -384,7 +396,9 @@ struct StreakTestHelper: View {
     
     return VStack {
         StreakSectionView(habit: $habit)
-        StreakTestHelper(habit: $habit)
+        StreakTestHelper(habit: $habit, onSave: {
+            print("💾 Preview: Guardado")
+        })
     }
     .padding()
 }

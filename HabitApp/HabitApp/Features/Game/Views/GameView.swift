@@ -10,6 +10,8 @@ import SwiftUI
 struct GameView: View {
     @StateObject private var viewModel: GameViewModel
     @EnvironmentObject var appConfig: AppConfig
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var refreshID = UUID()
     
     init(storageProvider: StorageProvider, appConfig: AppConfig) {
         _viewModel = StateObject(wrappedValue: GameViewModel(storageProvider: storageProvider, appConfig: appConfig))
@@ -38,12 +40,30 @@ struct GameView: View {
                                     .padding()
                                 }
                                 .background(AppStyle.screenBackground)
+                                .id(refreshID) // Forzar reconstrucción de contenido
                             }
                         }
             .navigationTitle("Juego")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.large)
             #endif
+            .onAppear {
+                // Forzar recarga y cambiar ID para refrescar la vista
+                refreshID = UUID()
+                Task {
+                    await viewModel.loadGameData()
+                    await viewModel.reloadHabitos()
+                }
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                // Recargar cuando la app vuelve a estar activa
+                if newPhase == .active {
+                    Task {
+                        await viewModel.loadGameData()
+                        await viewModel.reloadHabitos()
+                    }
+                }
+            }
             .task {
                 // Recargar datos del juego y hábitos cada vez que se muestra la vista
                 // Esto mantiene el nivel actualizado cuando cambia la racha
