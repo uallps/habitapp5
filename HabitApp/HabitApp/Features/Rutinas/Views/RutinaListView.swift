@@ -59,6 +59,11 @@ private struct RutinaListContentView: View {
                                     await viewModel.updateRutina(rutina)
                                     await loadHabitCounts()
                                 }
+                            },
+                            onDismiss: {
+                                Task {
+                                    await loadHabitCounts()
+                                }
                             }
                         )) {
                             RutinaRowView(

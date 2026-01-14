@@ -28,6 +28,7 @@ struct RutinaDetailView: View {
     let habitListViewModel: HabitListViewModel
     let rutinaViewModel: RutinaViewModel
     let onSave: () -> Void
+    var onDismiss: (() -> Void)? = nil
     
     @State private var habitosDisponibles: [Habito] = []
     @State private var habitosEnRutina: [Habito] = []
@@ -137,6 +138,9 @@ struct RutinaDetailView: View {
         }
         .task {
             await loadHabitos()
+        }
+        .onDisappear {
+            onDismiss?()
         }
     }
     
