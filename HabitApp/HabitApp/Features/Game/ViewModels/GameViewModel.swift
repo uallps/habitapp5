@@ -16,8 +16,15 @@ final class GameViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var habitos: [Habito] = []
-    @Published var selectedHabitoId: UUID?
+    @Published var selectedHabitoId: UUID? {
+        didSet {
+            Task { [weak self] in
+                await self?.recalculateLevel()
+            }
+        }
+    }
     @Published var gameData = GameData()
+    @Published private(set) var nivel: Int = 0
     
     // MARK: - Private Properties
     
@@ -31,11 +38,6 @@ final class GameViewModel: ObservableObject {
     var selectedHabito: Habito? {
         guard let id = selectedHabitoId else { return nil }
         return habitos.first { $0.id == id }
-    }
-    
-    var nivel: Int {
-        guard let habito = selectedHabito else { return 0 }
-        return calculateLevel(for: habito)
     }
     
     var currentProgress: HabitGameProgress? {
@@ -186,6 +188,9 @@ final class GameViewModel: ObservableObject {
         }
         
         isLoading = false
+
+        // Recalcular el nivel con los datos más recientes
+        await recalculateLevel()
     }
     
     /// Recarga los hábitos (llamar cuando el usuario hace clic en el selector)
@@ -249,6 +254,30 @@ final class GameViewModel: ObservableObject {
         }
         
         return totalLevel
+    }
+
+    /// Recalcula el nivel usando una versión fresca del hábito desde el StorageProvider.
+    /// De esta forma evitamos acceder a instancias de Habito que SwiftData ya haya eliminado
+    /// de su ModelContext (lo que generaba el fatal error en fechaCompletitud).
+    private func recalculateLevel() async {
+        guard let selectedId = selectedHabitoId else {
+            nivel = 0
+            return
+        }
+
+        do {
+            let upToDateHabits = try await storageProvider.loadHabits()
+            guard let habit = upToDateHabits.first(where: { $0.id == selectedId }) else {
+                // El hábito seleccionado ya no existe
+                nivel = 0
+                return
+            }
+
+            nivel = calculateLevel(for: habit)
+        } catch {
+            print("❌ [GameViewModel] Error recalculating level: \(error)")
+            nivel = 0
+        }
     }
     
     // MARK: - Shop Methods

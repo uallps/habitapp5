@@ -69,37 +69,7 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     
     @MainActor
     func habitDetailView(for habito: Binding<Habito>) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            let rutinas = viewModel.getRutinasConHabito(habitoId: habito.wrappedValue.id)
-            
-            if !rutinas.isEmpty {
-                Text("Rutinas")
-                    .font(.headline)
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(rutinas) { rutina in
-                        HStack {
-                            Circle()
-                                .fill(self.colorFromHex(rutina.color))
-                                .frame(width: 8, height: 8)
-                            Text(rutina.nombre)
-                                .font(.subheadline)
-                            Spacer()
-                            if !rutina.isActiva {
-                                Text("Inactiva")
-                                    .font(.caption2)
-                                    .foregroundColor(.orange)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 8)
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(6)
-                    }
-                }
-            }
-        }
-        .padding(.vertical, 8)
+        RutinaHabitDetailView(habito: habito.wrappedValue, viewModel: viewModel, plugin: self)
     }
     
     @MainActor
@@ -160,7 +130,7 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     @MainActor
     func willDeleteHabito(_ habito: Habito) async {
         print("[Rutinas] Hábito '\(habito.title)' será eliminado")
-        let rutinas = viewModel.getRutinasConHabito(habitoId: habito.id)
+        let rutinas = await viewModel.getRutinasConHabito(habitoId: habito.id)
         if !rutinas.isEmpty {
             print("[Rutinas] Este hábito está en \(rutinas.count) rutina(s)")
         }
@@ -170,6 +140,8 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     func didDeleteHabito(habitoId: UUID) async {
         print("[Rutinas] Eliminando hábito \(habitoId) de todas las rutinas")
         await viewModel.removeHabitoFromRutinas(habitoId: habitoId)
+        // Forzar recarga para limpiar cualquier referencia a objetos desconectados
+        await viewModel.loadRutinas()
     }
     
     @MainActor
@@ -189,7 +161,7 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     
     // MARK: - Métodos Auxiliares
     
-    private func colorFromHex(_ hex: String) -> Color {
+    fileprivate func colorFromHex(_ hex: String) -> Color {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
@@ -208,7 +180,8 @@ final class RutinaPlugin: ViewPlugin, DataPlugin {
     }
 }
 
-// MARK: - Vista Auxiliar para Fila de Hábito
+// MARK: - Vistas Auxiliares
+
 private struct RutinaHabitRowView: View {
     let habito: Habito
     @ObservedObject var viewModel: RutinaViewModel
@@ -227,7 +200,51 @@ private struct RutinaHabitRowView: View {
         }
         .task {
             await viewModel.loadRutinas()
-            rutinasCount = viewModel.getRutinasConHabito(habitoId: habito.id).count
+            let rutinas = await viewModel.getRutinasConHabito(habitoId: habito.id)
+            rutinasCount = rutinas.count
+        }
+    }
+}
+
+private struct RutinaHabitDetailView: View {
+    let habito: Habito
+    @ObservedObject var viewModel: RutinaViewModel
+    let plugin: RutinaPlugin
+    @State private var rutinas: [Rutina] = []
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if !rutinas.isEmpty {
+                Text("Rutinas")
+                    .font(.headline)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(rutinas) { rutina in
+                        HStack {
+                            Circle()
+                                .fill(plugin.colorFromHex(rutina.color))
+                                .frame(width: 8, height: 8)
+                            Text(rutina.nombre)
+                                .font(.subheadline)
+                            Spacer()
+                            if !rutina.isActiva {
+                                Text("Inactiva")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(6)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 8)
+        .task {
+            await viewModel.loadRutinas()
+            rutinas = await viewModel.getRutinasConHabito(habitoId: habito.id)
         }
     }
 }

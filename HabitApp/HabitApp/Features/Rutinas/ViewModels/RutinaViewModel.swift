@@ -63,12 +63,22 @@ class RutinaViewModel: ObservableObject {
     }
     
     func removeRutinas(atOffsets offsets: IndexSet) async {
+        // Primero eliminamos del storage
+        let rutinasToDelete = offsets.map { rutinas[$0] }
+        
+        // Eliminar de la lista local
         rutinas.remove(atOffsets: offsets)
+        
         // Reordenar
         for (index, rutina) in rutinas.enumerated() {
             rutina.ordenEjecucion = index
         }
+        
+        // Guardar los cambios
         await saveRutinas()
+        
+        // Recargar desde storage para asegurar sincronización
+        await loadRutinas()
     }
     
     func toggleRutinaActiva(_ rutina: Rutina) async {
@@ -164,12 +174,16 @@ class RutinaViewModel: ObservableObject {
     
     // MARK: - Métodos Auxiliares
     
-    func getRutinasConHabito(habitoId: UUID) -> [Rutina] {
-        // Para depuración y uso en plugins preferimos trabajar con el
-        // estado en memoria actual, pero si algún modelo estuviera
-        // detached de SwiftData, este acceso se podría volver inseguro.
-        // En ese caso se podría migrar esta función a una versión async
-        // que recargue desde storage, similar a removeHabitoFromRutinas.
-        return rutinas.filter { $0.habitoIds.contains(habitoId) }
+    func getRutinasConHabito(habitoId: UUID) async -> [Rutina] {
+        // Recargar desde storage para evitar acceder a objetos de SwiftData
+        // que puedan haber sido desconectados del contexto
+        do {
+            let actuales = try await storageProvider.loadRutinas()
+            return actuales.filter { $0.habitoIds.contains(habitoId) }
+        } catch {
+            print("❌ Error obteniendo rutinas con hábito: \(error)")
+            // Fallback al estado en memoria solo si falla la carga
+            return rutinas.filter { $0.habitoIds.contains(habitoId) }
+        }
     }
 }

@@ -63,7 +63,7 @@ private struct RutinaListContentView: View {
                         )) {
                             RutinaRowView(
                                 rutina: rutina,
-                                habitCount: habitCountCache[rutina.id] ?? rutina.habitoIds.count,
+                                habitCount: habitCountCache[rutina.id] ?? 0,
                                 onToggleActiva: {
                                     Task {
                                         await viewModel.toggleRutinaActiva(rutina)

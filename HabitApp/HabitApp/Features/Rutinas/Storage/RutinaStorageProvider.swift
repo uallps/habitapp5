@@ -35,6 +35,14 @@ final class SwiftDataRutinaStorageProvider: RutinaStorageProvider {
             sortBy: [SortDescriptor(\.ordenEjecucion)]
         )
         let rutinas = try context.fetch(descriptor)
+        
+        // Forzar la resolución de todos los atributos para evitar faults no resueltos
+        for rutina in rutinas {
+            _ = rutina.habitoIds  // Acceder para resolver el atributo
+            _ = rutina.nombre
+            _ = rutina.color
+        }
+        
         print("✅ Cargadas \(rutinas.count) rutinas desde SwiftData")
         return rutinas
     }
@@ -90,13 +98,14 @@ final class SwiftDataRutinaStorageProvider: RutinaStorageProvider {
     }
     
     func deleteRutina(_ rutina: Rutina) async throws {
+        // Siempre buscar la rutina por ID para evitar problemas con objetos desconectados
         if let existing = try await loadRutina(for: rutina.id) {
             context.delete(existing)
+            try context.save()
+            print("Rutina eliminada de SwiftData")
         } else {
-            context.delete(rutina)
+            print("⚠️ Rutina no encontrada en contexto, posiblemente ya eliminada")
         }
-        try context.save()
-        print("Rutina eliminada de SwiftData")
     }
 }
 
