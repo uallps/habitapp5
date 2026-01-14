@@ -248,9 +248,10 @@ struct HabitDetailView: View {
                     Section(header: AppSectionHeader(title: "Racha")) {
                         StreakSectionView(habit: $habit)
                         
-                        // TEMPORAL: Helper para probar rachas
-                        // Comentar o eliminar esta línea cuando no hagamos debug de rachas
-                        StreakTestHelper(habit: $habit)
+                        // Helper para probar rachas (controlado desde ajustes)
+                        if AppConfig.showDebugTools {
+                            StreakTestHelper(habit: $habit)
+                        }
                     }
                 }
                 

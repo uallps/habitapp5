@@ -26,6 +26,9 @@ class AppConfig: ObservableObject {
     @AppStorage("enableStatistics")
     var enableStatistics: Bool = true
 
+    @AppStorage("showDebugTools")
+    var showDebugTools: Bool = false
+
     @AppStorage("storageType")
     var storageType: StorageType = .json
 

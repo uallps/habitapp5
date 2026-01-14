@@ -24,6 +24,7 @@ struct SettingsView: View {
                 Toggle("Enable Daily Notes", isOn: $appConfig.enableDailyNotes)
                 Toggle("Enable Categories", isOn: $appConfig.enableCategories)
                 Toggle("Enable Statistics", isOn: $appConfig.enableStatistics)
+                Toggle("Show Debug Tools", isOn: $appConfig.showDebugTools)
                 Picker("Storage Type", selection: $appConfig.storageType) {
                     ForEach(StorageType.allCases) { type in
                         Text(type.rawValue).tag(type)
