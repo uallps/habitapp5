@@ -45,8 +45,9 @@ struct GameView: View {
             .navigationBarTitleDisplayMode(.large)
             #endif
             .task {
-                // Recargar hábitos cada vez que se muestra la vista
-                // Esto mantiene la lista actualizada con hábitos creados/eliminados
+                // Recargar datos del juego y hábitos cada vez que se muestra la vista
+                // Esto mantiene el nivel actualizado cuando cambia la racha
+                await viewModel.loadGameData()
                 await viewModel.reloadHabitos()
             }
         }
@@ -219,8 +220,8 @@ struct GameView: View {
             
             Divider()
             
-            // Grid de dragones
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
+            // Grid de dragones (2 columnas para mejor visualización)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                 ForEach(0..<GameData.totalDragonVariants, id: \.self) { index in
                     DragonCollectionCard(
                         dragonIndex: index,
@@ -381,18 +382,20 @@ struct DragonCollectionCard: View {
             // Arte del dragón
             if isCollected {
                 Text(dragonArt)
-                    .font(.system(.caption, design: .monospaced))
+                    .font(.system(.caption2, design: .monospaced))
                     .multilineTextAlignment(.center)
+                    .lineLimit(nil)
                     .padding(8)
-                    .frame(maxWidth: .infinity, minHeight: 100)
+                    .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 120)
                     .background(AppStyle.subtleFill)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 // Dragón no descubierto - silueta
                 ZStack {
                     Text(dragonArt)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.system(.caption2, design: .monospaced))
                         .multilineTextAlignment(.center)
+                        .lineLimit(nil)
                         .blur(radius: 5)
                         .opacity(0.3)
                     
@@ -401,7 +404,7 @@ struct DragonCollectionCard: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(8)
-                .frame(maxWidth: .infinity, minHeight: 100)
+                .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 120)
                 .background(AppStyle.subtleFill)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
