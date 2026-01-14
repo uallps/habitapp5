@@ -138,24 +138,38 @@ class RutinaViewModel: ObservableObject {
     
     /// Elimina un hábito de todas las rutinas
     func removeHabitoFromRutinas(habitoId: UUID) async {
-        var modified = false
-        
-        for rutina in rutinas {
-            if rutina.habitoIds.contains(habitoId) {
-                rutina.habitoIds.removeAll { $0 == habitoId }
-                modified = true
+        do {
+            // Cargar siempre las rutinas desde el storage para evitar usar
+            // instancias de SwiftData que ya hayan sido eliminadas del contexto.
+            var actuales = try await storageProvider.loadRutinas()
+            var modified = false
+
+            for rutina in actuales {
+                if rutina.habitoIds.contains(habitoId) {
+                    rutina.habitoIds.removeAll { $0 == habitoId }
+                    modified = true
+                }
             }
-        }
-        
-        if modified {
-            await saveRutinas()
-            print("Hábito eliminado de rutinas")
+
+            if modified {
+                try await storageProvider.saveRutinas(rutinas: actuales)
+                // Mantener el estado del ViewModel sincronizado con lo persistido
+                rutinas = actuales.sorted { $0.ordenEjecucion < $1.ordenEjecucion }
+                print("Hábito eliminado de rutinas")
+            }
+        } catch {
+            print("❌ Error eliminando hábito de rutinas: \(error)")
         }
     }
     
     // MARK: - Métodos Auxiliares
     
     func getRutinasConHabito(habitoId: UUID) -> [Rutina] {
+        // Para depuración y uso en plugins preferimos trabajar con el
+        // estado en memoria actual, pero si algún modelo estuviera
+        // detached de SwiftData, este acceso se podría volver inseguro.
+        // En ese caso se podría migrar esta función a una versión async
+        // que recargue desde storage, similar a removeHabitoFromRutinas.
         return rutinas.filter { $0.habitoIds.contains(habitoId) }
     }
 }
