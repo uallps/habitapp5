@@ -201,6 +201,18 @@ class Habito: Identifiable, Codable {
     
     /// Marca el hábito como completado para una fecha específica
     func marcarCompletado(en fecha: Date) {
+        // No permitir marcar como completado si la fecha es posterior a la fecha fin
+        if let fechaFin = fechaFin {
+            let calendar = Calendar.current
+            let fechaNormalizada = calendar.startOfDay(for: fecha)
+            let finNormalizada = calendar.startOfDay(for: fechaFin)
+            
+            // Si la fecha es posterior a la fecha fin, no hacer nada
+            if fechaNormalizada > finNormalizada {
+                return
+            }
+        }
+        
         let calendar = Calendar.current
         let fechaNormalizada = calendar.startOfDay(for: fecha)
         
@@ -222,6 +234,19 @@ class Habito: Identifiable, Codable {
     /// Esta función encapsula la lógica de negocio de marcar/desmarcar
     /// Debe ser llamada desde el ViewModel, no directamente desde la Vista
     func toggleCompletitud(para fecha: Date = Date()) {
+        // No permitir marcar como completado si la fecha es posterior a la fecha fin
+        // (Se permite marcar el mismo día de fin, pero no después)
+        if let fechaFin = fechaFin {
+            let calendar = Calendar.current
+            let fechaNormalizada = calendar.startOfDay(for: fecha)
+            let finNormalizada = calendar.startOfDay(for: fechaFin)
+            
+            // Si la fecha es posterior a la fecha fin, no hacer nada
+            if fechaNormalizada > finNormalizada {
+                return
+            }
+        }
+        
         if estaCompletado(en: fecha) {
             desmarcarCompletado(en: fecha)
         } else {

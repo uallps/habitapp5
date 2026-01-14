@@ -16,6 +16,7 @@ enum GameStorageType {
 }
 
 /// Servicio de almacenamiento para datos del juego
+@MainActor
 class GameStorageService {
     
     // MARK: - Properties

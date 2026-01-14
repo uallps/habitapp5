@@ -22,6 +22,7 @@ class SwiftDataContext {
     }
 }
 
+@MainActor
 class SwiftDataStorageProvider: StorageProvider {
 
     static let shared = SwiftDataStorageProvider()

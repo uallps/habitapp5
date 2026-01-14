@@ -99,7 +99,13 @@ struct HabitDetailView: View {
                 Toggle(isOn: Binding(
                     get: { habit.fechaFin != nil },
                     set: { newValue in
-                        habit.fechaFin = newValue ? (habit.fechaFin ?? Date()) : nil
+                        // Al activar el toggle, asegurar que la fecha fin sea al menos la fecha de inicio
+                        if newValue {
+                            let fechaInicio = habit.fechaInicio ?? Date()
+                            habit.fechaFin = max(habit.fechaFin ?? fechaInicio, fechaInicio)
+                        } else {
+                            habit.fechaFin = nil
+                        }
                     }
                 )) {
                     Text("Vencimiento")
@@ -111,8 +117,13 @@ struct HabitDetailView: View {
                             "",
                             selection: Binding(
                                 get: { dueDate },
-                                set: { habit.fechaFin = $0 }
+                                set: { newDate in
+                                    // No permitir seleccionar una fecha anterior a la fecha de inicio
+                                    let fechaInicio = habit.fechaInicio ?? Date()
+                                    habit.fechaFin = max(newDate, fechaInicio)
+                                }
                             ),
+                            in: (habit.fechaInicio ?? Date())...,
                             displayedComponents: .date
                         )
                         .labelsHidden()
